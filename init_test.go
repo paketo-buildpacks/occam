@@ -11,5 +11,6 @@ func TestUnitOccam(t *testing.T) {
 	suite := spec.New("occam", spec.Report(report.Terminal{}))
 	suite("Docker", testDocker)
 	suite("Pack", testPack)
+	suite("RandomName", testRandomName)
 	suite.Run(t)
 }

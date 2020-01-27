@@ -6,6 +6,7 @@ require (
 	code.cloudfoundry.org/lager v2.0.0+incompatible
 	github.com/cloudfoundry/packit v0.0.0-20200117181238-c9fbc0a623ec
 	github.com/kr/pretty v0.2.0 // indirect
+	github.com/oklog/ulid v1.3.1
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/onsi/gomega v1.8.1
 	github.com/sclevine/spec v1.4.0
