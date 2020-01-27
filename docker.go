@@ -2,96 +2,191 @@ package occam
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry/packit/pexec"
 )
 
-type DockerImage struct {
-	executable Executable
-}
-
 type Docker struct {
-	Image DockerImage
+	Image struct {
+		Inspect DockerImageInspect
+		Remove  DockerImageRemove
+	}
+
+	Container struct {
+		Inspect DockerContainerInspect
+		Run     DockerContainerRun
+		Remove  DockerContainerRemove
+	}
 }
 
 func NewDocker() Docker {
-	return Docker{
-		Image: DockerImage{
-			executable: pexec.NewExecutable("docker", lager.NewLogger("docker")),
-		},
-	}
+	var docker Docker
+	executable := pexec.NewExecutable("docker", lager.NewLogger("docker"))
+
+	docker.Image.Inspect = DockerImageInspect{executable: executable}
+	docker.Image.Remove = DockerImageRemove{executable: executable}
+	docker.Container.Run = DockerContainerRun{executable: executable, env: map[string]string{"PORT": "8080"}}
+	docker.Container.Remove = DockerContainerRemove{executable: executable}
+	docker.Container.Inspect = DockerContainerInspect{executable: executable}
+
+	return docker
 }
 
 func (d Docker) WithExecutable(executable Executable) Docker {
-	d.Image.executable = executable
+	d.Image.Inspect.executable = executable
+	d.Image.Remove.executable = executable
+
+	d.Container.Inspect.executable = executable
+	d.Container.Remove.executable = executable
+	d.Container.Run.executable = executable
+	d.Container.Run.inspect = d.Container.Inspect
+
 	return d
 }
 
-func (di DockerImage) Inspect(ref string) (Image, error) {
-	inspectOutput := bytes.NewBuffer(nil)
-	errorBuffer := bytes.NewBuffer(nil)
-	_, _, err := di.executable.Execute(pexec.Execution{
+type DockerImageInspect struct {
+	executable Executable
+}
+
+func (i DockerImageInspect) Execute(ref string) (Image, error) {
+	stdout := bytes.NewBuffer(nil)
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := i.executable.Execute(pexec.Execution{
 		Args:   []string{"image", "inspect", ref},
-		Stdout: inspectOutput,
-		Stderr: errorBuffer,
+		Stdout: stdout,
+		Stderr: stderr,
 	})
 	if err != nil {
-		return Image{}, fmt.Errorf("failed to inspect docker image: %w: %s", err, strings.TrimSpace(errorBuffer.String()))
+		return Image{}, fmt.Errorf("failed to inspect docker image: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
-	var inspect []struct {
-		ID     string `json:"Id"`
-		Config struct {
-			Labels struct {
-				LifecycleMetadata string `json:"io.buildpacks.lifecycle.metadata"`
-			} `json:"Labels"`
-		} `json:"Config"`
-	}
-	err = json.Unmarshal(inspectOutput.Bytes(), &inspect)
+	return NewImageFromInspectOutput(stdout.Bytes())
+}
+
+type DockerImageRemove struct {
+	executable Executable
+}
+
+func (r DockerImageRemove) Execute(ref string) error {
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := r.executable.Execute(pexec.Execution{
+		Args:   []string{"image", "remove", ref},
+		Stderr: stderr,
+	})
 	if err != nil {
-		return Image{}, fmt.Errorf("failed to inspect docker image: %w", err)
+		return fmt.Errorf("failed to remove docker image: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
-	var metadata struct {
-		Buildpacks []struct {
-			Key    string `json:"key"`
-			Layers map[string]struct {
-				SHA    string `json:"sha"`
-				Build  bool   `json:"build"`
-				Launch bool   `json:"launch"`
-				Cache  bool   `json:"cache"`
-			} `json:"layers"`
-		} `json:"buildpacks"`
-	}
-	err = json.Unmarshal([]byte(inspect[0].Config.Labels.LifecycleMetadata), &metadata)
-	if err != nil {
-		return Image{}, fmt.Errorf("failed to inspect docker image: %w", err)
-	}
+	return nil
+}
 
-	var buildpacks []ImageBuildpackMetadata
-	for _, buildpack := range metadata.Buildpacks {
-		layers := map[string]ImageBuildpackMetadataLayer{}
-		for name, layer := range buildpack.Layers {
-			layers[name] = ImageBuildpackMetadataLayer{
-				SHA:    layer.SHA,
-				Build:  layer.Build,
-				Launch: layer.Launch,
-				Cache:  layer.Cache,
-			}
+type DockerContainerRun struct {
+	executable Executable
+	inspect    DockerContainerInspect
+
+	command string
+	env     map[string]string
+	memory  string
+}
+
+func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
+	r.env = env
+	return r
+}
+
+func (r DockerContainerRun) WithMemory(memoryLimit string) DockerContainerRun {
+	r.memory = memoryLimit
+	return r
+}
+
+func (r DockerContainerRun) WithCommand(command string) DockerContainerRun {
+	r.command = command
+	return r
+}
+
+func (r DockerContainerRun) Execute(imageID string) (Container, error) {
+	args := []string{"container", "run", "--detach"}
+
+	if len(r.env) > 0 {
+		var keys []string
+		for key := range r.env {
+			keys = append(keys, key)
 		}
 
-		buildpacks = append(buildpacks, ImageBuildpackMetadata{
-			Key:    buildpack.Key,
-			Layers: layers,
-		})
+		sort.Strings(keys)
+
+		for _, key := range keys {
+			args = append(args, "--env", fmt.Sprintf("%s=%s", key, r.env[key]))
+		}
 	}
 
-	return Image{
-		ID:         inspect[0].ID,
-		Buildpacks: buildpacks,
-	}, nil
+	args = append(args, "--publish", r.env["PORT"], "--publish-all")
+
+	if r.memory != "" {
+		args = append(args, "--memory", r.memory)
+	}
+
+	args = append(args, imageID)
+
+	if r.command != "" {
+		args = append(args, r.command)
+	}
+
+	stdout := bytes.NewBuffer(nil)
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := r.executable.Execute(pexec.Execution{
+		Args:   args,
+		Stdout: stdout,
+		Stderr: stderr,
+	})
+	if err != nil {
+		return Container{}, fmt.Errorf("failed to run docker container: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return r.inspect.Execute(strings.TrimSpace(stdout.String()))
+}
+
+type DockerContainerRemove struct {
+	executable Executable
+}
+
+func (r DockerContainerRemove) Execute(containerID string) error {
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := r.executable.Execute(pexec.Execution{
+		Args:   []string{"container", "rm", containerID},
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to remove docker container: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+type DockerContainerInspect struct {
+	executable Executable
+}
+
+func (i DockerContainerInspect) Execute(containerID string) (Container, error) {
+	stdout := bytes.NewBuffer(nil)
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := i.executable.Execute(pexec.Execution{
+		Args:   []string{"container", "inspect", containerID},
+		Stdout: stdout,
+		Stderr: stderr,
+	})
+	if err != nil {
+		return Container{}, fmt.Errorf("failed to inspect docker container: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	container, err := NewContainerFromInspectOutput(stdout.Bytes())
+	if err != nil {
+		return Container{}, fmt.Errorf("failed to inspect docker container: %w", err)
+	}
+
+	return container, nil
 }

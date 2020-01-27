@@ -17,9 +17,9 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		executable        *fakes.Executable
-		dockerImageClient *fakes.DockerImageClient
-		pack              occam.Pack
+		executable               *fakes.Executable
+		dockerImageInspectClient *fakes.DockerImageInspectClient
+		pack                     occam.Pack
 	)
 
 	it.Before(func() {
@@ -30,12 +30,12 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			return "", "", nil
 		}
 
-		dockerImageClient = &fakes.DockerImageClient{}
-		dockerImageClient.InspectCall.Returns.Image = occam.Image{
+		dockerImageInspectClient = &fakes.DockerImageInspectClient{}
+		dockerImageInspectClient.ExecuteCall.Returns.Image = occam.Image{
 			ID: "some-image-id",
 		}
 
-		pack = occam.NewPack().WithExecutable(executable).WithDockerImageClient(dockerImageClient)
+		pack = occam.NewPack().WithExecutable(executable).WithDockerImageInspectClient(dockerImageInspectClient)
 	})
 
 	context("WithVerbose", func() {
@@ -56,7 +56,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				"--verbose",
 				"--path", "/some/app/path",
 			}))
-			Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
 	})
 
@@ -78,7 +78,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				"--no-color",
 				"--path", "/some/app/path",
 			}))
-			Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
 	})
 
@@ -94,7 +94,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 				"build", "myapp", "--path", "/some/app/path",
 			}))
-			Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
 
 		context("when given optional buildpacks", func() {
@@ -115,7 +115,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--buildpack", "some-buildpack",
 					"--buildpack", "other-buildpack",
 				}))
-				Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
@@ -134,7 +134,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--network", "some-network",
 				}))
-				Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
@@ -153,7 +153,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--builder", "some-builder",
 				}))
-				Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
@@ -172,7 +172,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--clear-cache",
 				}))
-				Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
@@ -197,7 +197,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--env", "OTHER_KEY=other-value",
 					"--env", "SOME_KEY=some-value",
 				}))
-				Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
@@ -216,7 +216,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--no-pull",
 				}))
-				Expect(dockerImageClient.InspectCall.Receives.Ref).To(Equal("myapp"))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
@@ -239,7 +239,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 
 			context("when the docker image client fails", func() {
 				it.Before(func() {
-					dockerImageClient.InspectCall.Returns.Error = errors.New("failed to inspect image")
+					dockerImageInspectClient.ExecuteCall.Returns.Error = errors.New("failed to inspect image")
 				})
 
 				it("returns an error and the build logs", func() {

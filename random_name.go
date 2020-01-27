@@ -2,6 +2,8 @@ package occam
 
 import (
 	"crypto/rand"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/oklog/ulid"
@@ -17,5 +19,5 @@ func RandomName() (string, error) {
 		return "", err
 	}
 
-	return guid.String(), nil
+	return strings.ToLower(fmt.Sprintf("occam-%s", guid)), nil
 }

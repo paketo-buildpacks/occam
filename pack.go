@@ -14,9 +14,9 @@ type Executable interface {
 	Execute(pexec.Execution) (stdout, stderr string, err error)
 }
 
-//go:generate faux --interface DockerImageClient --output fakes/docker_image_client.go
-type DockerImageClient interface {
-	Inspect(ref string) (Image, error)
+//go:generate faux --interface DockerImageInspectClient --output fakes/docker_image_inspect_client.go
+type DockerImageInspectClient interface {
+	Execute(ref string) (Image, error)
 }
 
 type Pack struct {
@@ -26,8 +26,8 @@ type Pack struct {
 func NewPack() Pack {
 	return Pack{
 		Build: PackBuild{
-			executable:        pexec.NewExecutable("pack", lager.NewLogger("pack")),
-			dockerImageClient: NewDocker().Image,
+			executable:               pexec.NewExecutable("pack", lager.NewLogger("pack")),
+			dockerImageInspectClient: NewDocker().Image.Inspect,
 		},
 	}
 }
@@ -37,8 +37,8 @@ func (p Pack) WithExecutable(executable Executable) Pack {
 	return p
 }
 
-func (p Pack) WithDockerImageClient(client DockerImageClient) Pack {
-	p.Build.dockerImageClient = client
+func (p Pack) WithDockerImageInspectClient(client DockerImageInspectClient) Pack {
+	p.Build.dockerImageInspectClient = client
 	return p
 }
 
@@ -53,8 +53,8 @@ func (p Pack) WithNoColor() Pack {
 }
 
 type PackBuild struct {
-	executable        Executable
-	dockerImageClient DockerImageClient
+	executable               Executable
+	dockerImageInspectClient DockerImageInspectClient
 
 	verbose bool
 	noColor bool
@@ -153,7 +153,7 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 		return Image{}, buildLogBuffer, fmt.Errorf("failed to pack build: %w", err)
 	}
 
-	image, err := pb.dockerImageClient.Inspect(name)
+	image, err := pb.dockerImageInspectClient.Execute(name)
 	if err != nil {
 		return Image{}, buildLogBuffer, fmt.Errorf("failed to pack build: %w", err)
 	}
