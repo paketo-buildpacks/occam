@@ -16,10 +16,11 @@ type ImageBuildpackMetadata struct {
 }
 
 type ImageBuildpackMetadataLayer struct {
-	SHA    string
-	Build  bool
-	Launch bool
-	Cache  bool
+	SHA      string
+	Build    bool
+	Launch   bool
+	Cache    bool
+	Metadata map[string]interface{}
 }
 
 func NewImageFromInspectOutput(output []byte) (Image, error) {
@@ -40,10 +41,11 @@ func NewImageFromInspectOutput(output []byte) (Image, error) {
 		Buildpacks []struct {
 			Key    string `json:"key"`
 			Layers map[string]struct {
-				SHA    string `json:"sha"`
-				Build  bool   `json:"build"`
-				Launch bool   `json:"launch"`
-				Cache  bool   `json:"cache"`
+				SHA    string                 `json:"sha"`
+				Build  bool                   `json:"build"`
+				Launch bool                   `json:"launch"`
+				Cache  bool                   `json:"cache"`
+				Data   map[string]interface{} `json:"data"`
 			} `json:"layers"`
 		} `json:"buildpacks"`
 	}
@@ -57,10 +59,11 @@ func NewImageFromInspectOutput(output []byte) (Image, error) {
 		layers := map[string]ImageBuildpackMetadataLayer{}
 		for name, layer := range buildpack.Layers {
 			layers[name] = ImageBuildpackMetadataLayer{
-				SHA:    layer.SHA,
-				Build:  layer.Build,
-				Launch: layer.Launch,
-				Cache:  layer.Cache,
+				SHA:      layer.SHA,
+				Build:    layer.Build,
+				Launch:   layer.Launch,
+				Cache:    layer.Cache,
+				Metadata: layer.Data,
 			}
 		}
 

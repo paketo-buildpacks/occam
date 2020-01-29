@@ -36,7 +36,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 							"Id": "some-image-id",
 							"Config": {
 								"Labels": {
-									"io.buildpacks.lifecycle.metadata": "{\"buildpacks\": [{\"key\": \"some-buildpack\", \"layers\": {\"some-layer\": {\"sha\": \"some-sha\", \"build\": true, \"launch\": true, \"cache\": true}}}]}"
+									"io.buildpacks.lifecycle.metadata": "{\"buildpacks\": [{\"key\": \"some-buildpack\", \"layers\": {\"some-layer\": {\"sha\": \"some-sha\", \"build\": true, \"launch\": true, \"cache\": true, \"data\": {\"some-key\": \"some-value\"}}}}]}"
 								}
 							}
 						}
@@ -60,6 +60,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 									Build:  true,
 									Launch: true,
 									Cache:  true,
+									Metadata: map[string]interface{}{
+										"some-key": "some-value",
+									},
 								},
 							},
 						},
@@ -165,10 +168,12 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 								"Id": "some-container-id",
 								"NetworkSettings": {
 									"Ports": {
-										"8080/tcp": {
-											"HostIp": "0.0.0.0",
-											"HostPort": "12345"
-										}
+										"8080/tcp": [
+											{
+												"HostIp": "0.0.0.0",
+												"HostPort": "12345"
+											}
+										]
 									}
 								}
 							}
@@ -288,14 +293,14 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				context("when the executable fails", func() {
 					it.Before(func() {
 						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
-							fmt.Fprintln(execution.Stderr, "Unable to find image 'banana:latest' locally")
+							fmt.Fprintln(execution.Stderr, "Unable to find image 'some-image-id' locally")
 							return "", "", errors.New("exit status 1")
 						}
 					})
 
 					it("returns an error", func() {
 						_, err := docker.Container.Run.Execute("some-image-id")
-						Expect(err).To(MatchError("failed to run docker container: exit status 1: Unable to find image 'banana:latest' locally"))
+						Expect(err).To(MatchError("failed to run docker container: exit status 1: Unable to find image 'some-image-id' locally"))
 					})
 				})
 			})
@@ -307,7 +312,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-					"container", "rm", "some-container-id",
+					"container", "rm", "some-container-id", "--force",
 				}))
 			})
 
@@ -334,12 +339,19 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					fmt.Fprintln(execution.Stdout, `[
 						{
 							"Id": "some-container-id",
+							"Config": {
+								"Env": [
+									"PORT=8080"
+								]
+							},
 							"NetworkSettings": {
 								"Ports": {
-									"8080/tcp": {
-										"HostIp": "0.0.0.0",
-										"HostPort": "12345"
-									}
+									"8080/tcp": [
+										{
+											"HostIp": "0.0.0.0",
+											"HostPort": "12345"
+										}
+									]
 								}
 							}
 						}
@@ -354,6 +366,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(container).To(Equal(occam.Container{
 					ID: "some-container-id",
+					Env: map[string]string{
+						"PORT": "8080",
+					},
 					Ports: map[string]string{
 						"8080": "12345",
 					},
@@ -391,6 +406,71 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						_, err := docker.Container.Inspect.Execute("some-container-id")
 						Expect(err).To(MatchError(ContainSubstring("failed to inspect docker container:")))
 						Expect(err).To(MatchError(ContainSubstring("invalid character")))
+					})
+				})
+			})
+		})
+
+		context("Logs", func() {
+			it.Before(func() {
+				executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+					fmt.Fprintln(execution.Stdout, "this is some logging")
+
+					return "", "", nil
+				}
+			})
+
+			it("fetches the logs for the given container", func() {
+				logs, err := docker.Container.Logs.Execute("some-container-id")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(logs.String()).To(Equal("this is some logging\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"container", "logs", "some-container-id",
+				}))
+			})
+
+			context("failure cases", func() {
+				context("when the executable fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+							fmt.Fprintln(execution.Stderr, "Error: No such container: some-container-id")
+							return "", "", errors.New("exit status 1")
+						}
+					})
+
+					it("returns an error", func() {
+						_, err := docker.Container.Logs.Execute("some-container-id")
+						Expect(err).To(MatchError("failed to fetch docker container logs: exit status 1: Error: No such container: some-container-id"))
+					})
+				})
+			})
+		})
+	})
+
+	context("Volume", func() {
+		context("Remove", func() {
+			it("will remove the given volume", func() {
+				err := docker.Volume.Remove.Execute([]string{"some-volume-name", "other-volume-name"})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"volume", "rm", "--force", "some-volume-name", "other-volume-name",
+				}))
+			})
+
+			context("failure cases", func() {
+				context("when the volume rm command fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+							fmt.Fprintln(execution.Stderr, "Error: failed to remove volume")
+							return "", "", errors.New("exit status 1")
+						}
+					})
+
+					it("returns an error", func() {
+						err := docker.Volume.Remove.Execute([]string{"some-volume-name", "other-volume-name"})
+						Expect(err).To(MatchError("failed to remove docker volume: exit status 1: Error: failed to remove volume"))
 					})
 				})
 			})

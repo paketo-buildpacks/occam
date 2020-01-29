@@ -18,8 +18,13 @@ type Docker struct {
 
 	Container struct {
 		Inspect DockerContainerInspect
+		Logs    DockerContainerLogs
 		Run     DockerContainerRun
 		Remove  DockerContainerRemove
+	}
+
+	Volume struct {
+		Remove DockerVolumeRemove
 	}
 }
 
@@ -29,9 +34,17 @@ func NewDocker() Docker {
 
 	docker.Image.Inspect = DockerImageInspect{executable: executable}
 	docker.Image.Remove = DockerImageRemove{executable: executable}
-	docker.Container.Run = DockerContainerRun{executable: executable, env: map[string]string{"PORT": "8080"}}
-	docker.Container.Remove = DockerContainerRemove{executable: executable}
+
 	docker.Container.Inspect = DockerContainerInspect{executable: executable}
+	docker.Container.Logs = DockerContainerLogs{executable: executable}
+	docker.Container.Run = DockerContainerRun{
+		executable: executable,
+		inspect:    docker.Container.Inspect,
+		env:        map[string]string{"PORT": "8080"},
+	}
+	docker.Container.Remove = DockerContainerRemove{executable: executable}
+
+	docker.Volume.Remove = DockerVolumeRemove{executable: executable}
 
 	return docker
 }
@@ -41,9 +54,12 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Image.Remove.executable = executable
 
 	d.Container.Inspect.executable = executable
+	d.Container.Logs.executable = executable
 	d.Container.Remove.executable = executable
 	d.Container.Run.executable = executable
 	d.Container.Run.inspect = d.Container.Inspect
+
+	d.Volume.Remove.executable = executable
 
 	return d
 }
@@ -157,7 +173,7 @@ type DockerContainerRemove struct {
 func (r DockerContainerRemove) Execute(containerID string) error {
 	stderr := bytes.NewBuffer(nil)
 	_, _, err := r.executable.Execute(pexec.Execution{
-		Args:   []string{"container", "rm", containerID},
+		Args:   []string{"container", "rm", containerID, "--force"},
 		Stderr: stderr,
 	})
 	if err != nil {
@@ -189,4 +205,43 @@ func (i DockerContainerInspect) Execute(containerID string) (Container, error) {
 	}
 
 	return container, nil
+}
+
+type DockerContainerLogs struct {
+	executable Executable
+}
+
+func (i DockerContainerLogs) Execute(containerID string) (fmt.Stringer, error) {
+	stdout := bytes.NewBuffer(nil)
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := i.executable.Execute(pexec.Execution{
+		Args:   []string{"container", "logs", containerID},
+		Stdout: stdout,
+		Stderr: stderr,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch docker container logs: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return stdout, nil
+}
+
+type DockerVolumeRemove struct {
+	executable Executable
+}
+
+func (r DockerVolumeRemove) Execute(volumes []string) error {
+	args := []string{"volume", "rm", "--force"}
+	args = append(args, volumes...)
+
+	stderr := bytes.NewBuffer(nil)
+	_, _, err := r.executable.Execute(pexec.Execution{
+		Args:   args,
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to remove docker volume: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
 }
