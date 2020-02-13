@@ -30,7 +30,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 	context("Image", func() {
 		context("Inspect", func() {
 			it.Before(func() {
-				executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+				executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 					fmt.Fprintln(execution.Stdout, `[
 						{
 							"Id": "some-image-id",
@@ -42,7 +42,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						}
 					]`)
 
-					return "", "", nil
+					return nil
 				}
 			})
 
@@ -77,10 +77,10 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stdout, "[]")
 							fmt.Fprintln(execution.Stderr, "Error: No such image: some-app:latest")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 
@@ -92,9 +92,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 				context("when malformed json is given", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stdout, `malformed json %%%%`)
-							return "", "", nil
+							return nil
 						}
 					})
 
@@ -107,9 +107,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 				context("when then lifecycle metadata has malformed json", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stdout, `[{"Config": {"Labels": {"io.buildpacks.lifecycle.metadata": "%%%"}}}]`)
-							return "", "", nil
+							return nil
 						}
 					})
 
@@ -135,9 +135,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stderr, "Error: No such image: some-image-id")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 
@@ -156,7 +156,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 			it.Before(func() {
 				executeArgs = [][]string{}
-				executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+				executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 					executeArgs = append(executeArgs, execution.Args)
 
 					switch executable.ExecuteCall.CallCount {
@@ -180,7 +180,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						]`)
 					}
 
-					return "", "", nil
+					return nil
 				}
 			})
 
@@ -292,9 +292,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stderr, "Unable to find image 'some-image-id' locally")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 
@@ -319,9 +319,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stderr, "Error: No such container: some-container-id")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 
@@ -335,7 +335,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 		context("Inspect", func() {
 			it.Before(func() {
-				executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+				executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 					fmt.Fprintln(execution.Stdout, `[
 						{
 							"Id": "some-container-id",
@@ -357,7 +357,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						}
 					]`)
 
-					return "", "", nil
+					return nil
 				}
 			})
 
@@ -382,9 +382,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stderr, "Error: No such container: some-container-id")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 
@@ -396,9 +396,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 				context("when the output is malformed json", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stdout, "%%%")
-							return "", "", nil
+							return nil
 						}
 					})
 
@@ -413,10 +413,10 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 		context("Logs", func() {
 			it.Before(func() {
-				executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+				executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 					fmt.Fprintln(execution.Stdout, "this is some logging")
 
-					return "", "", nil
+					return nil
 				}
 			})
 
@@ -433,9 +433,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stderr, "Error: No such container: some-container-id")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 
@@ -462,9 +462,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			context("failure cases", func() {
 				context("when the volume rm command fails", func() {
 					it.Before(func() {
-						executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 							fmt.Fprintln(execution.Stderr, "Error: failed to remove volume")
-							return "", "", errors.New("exit status 1")
+							return errors.New("exit status 1")
 						}
 					})
 

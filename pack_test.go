@@ -24,10 +24,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 
 	it.Before(func() {
 		executable = &fakes.Executable{}
-		executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 			fmt.Fprintln(execution.Stdout, "some stdout output")
 			fmt.Fprintln(execution.Stderr, "some stderr output")
-			return "", "", nil
+			return nil
 		}
 
 		dockerImageInspectClient = &fakes.DockerImageInspectClient{}
@@ -223,10 +223,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 		context("failure cases", func() {
 			context("when the executable fails", func() {
 				it.Before(func() {
-					executable.ExecuteCall.Stub = func(execution pexec.Execution) (string, string, error) {
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
 						fmt.Fprintln(execution.Stdout, "some stdout output")
 						fmt.Fprintln(execution.Stderr, "some stderr output")
-						return "", "", errors.New("failed to execute")
+						return errors.New("failed to execute")
 					}
 				})
 
