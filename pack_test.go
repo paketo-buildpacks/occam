@@ -232,7 +232,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 
 				it("returns an error and the build logs", func() {
 					_, logs, err := pack.Build.Execute("myapp", "/some/app/path")
-					Expect(err).To(MatchError("failed to pack build: failed to execute"))
+					Expect(err).To(MatchError("failed to pack build: failed to execute\n\nOutput:\nsome stdout output\nsome stderr output\n"))
 					Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
 				})
 			})
