@@ -5,6 +5,8 @@ github.com/VividCortex/ewma v1.1.1/go.mod h1:2Tkkvm3sRDVXaiyucHiACn4cqf7DpdyLvmx
 github.com/cheggaaa/pb/v3 v3.0.4/go.mod h1:7rgWxLrAUcFMkvJuv09+DYi7mMUYi8nO9iOWcvGJPfw=
 github.com/cloudfoundry/packit v0.0.3 h1:ABdSvNQ8g63bjiy3rFeoEkI/VYWftYySDYF6R1kmrsk=
 github.com/cloudfoundry/packit v0.0.3/go.mod h1:9xu1MT6SrenSB4oFOXtruMapQ+vdfGXLzBZDnPjhYrM=
+github.com/cloudfoundry/packit v0.0.4 h1:MbdOjqZNtuCvURVxEkpyz36Jrdg6JRvE0O3auK+uX64=
+github.com/cloudfoundry/packit v0.0.4/go.mod h1:9xu1MT6SrenSB4oFOXtruMapQ+vdfGXLzBZDnPjhYrM=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
