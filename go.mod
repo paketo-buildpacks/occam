@@ -1,4 +1,4 @@
-module github.com/cloudfoundry/occam
+module github.com/paketo-buildpacks/occam
 
 go 1.13
 

@@ -3,7 +3,7 @@ package occam_test
 import (
 	"testing"
 
-	"github.com/cloudfoundry/occam"
+	"github.com/paketo-buildpacks/occam"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
