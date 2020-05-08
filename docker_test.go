@@ -441,7 +441,8 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 		context("Logs", func() {
 			it.Before(func() {
 				executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-					fmt.Fprintln(execution.Stdout, "this is some logging")
+					fmt.Fprintln(execution.Stdout, "on stdout")
+					fmt.Fprintln(execution.Stderr, "on stderr")
 
 					return nil
 				}
@@ -450,7 +451,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			it("fetches the logs for the given container", func() {
 				logs, err := docker.Container.Logs.Execute("some-container-id")
 				Expect(err).NotTo(HaveOccurred())
-				Expect(logs.String()).To(Equal("this is some logging\n"))
+				Expect(logs.String()).To(Equal("on stdout\non stderr\n"))
 
 				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 					"container", "logs", "some-container-id",
