@@ -24,19 +24,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit
     steps:
+    - name: Reset Draft Release
+      uses: paketo-buildpacks/github-config/actions/release/reset-draft@master
+      with:
+        repo: ${{ github.repository }}
+        token: ${{ github.token }}
     - name: Checkout
       uses: actions/checkout@v2
     - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Tag
       id: tag
       uses: paketo-buildpacks/github-config/actions/tag@master
-    - name: Create Release
-      id: create-release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Draft Release
+      uses: paketo-buildpacks/github-config/actions/release/create@master
       with:
+        repo: ${{ github.repository }}
+        token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
         tag_name: v${{ steps.tag.outputs.tag }}
-        release_name: v${{ steps.tag.outputs.tag }}
-        draft: false
-        prerelease: false
+        target_commitish: ${{ github.sha }}
+        name: v${{ steps.tag.outputs.tag }}
+        body: '' # TODO: remove once body becomes an optional input
+        draft: true
