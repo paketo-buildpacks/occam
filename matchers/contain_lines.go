@@ -31,6 +31,10 @@ func (matcher *containLinesMatcher) Match(actual interface{}) (success bool, err
 	actualLines := matcher.lines(actual)
 
 	if len(actualLines) == 0 {
+		if s, ok := actual.(fmt.Stringer); ok {
+			actual = s.String()
+		}
+
 		return false, fmt.Errorf("ContainLinesMatcher requires lines with [builder] prefix, found none: %s", format.Object(actual, 1))
 	}
 
