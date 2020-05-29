@@ -9,6 +9,7 @@ import (
 
 func TestUnitMatchers(t *testing.T) {
 	suite := spec.New("occam/matchers", spec.Report(report.Terminal{}))
+	suite("BeAvailable", testBeAvailable)
 	suite("ContainLines", testContainLines)
 	suite.Run(t)
 }
