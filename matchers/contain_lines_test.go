@@ -240,9 +240,18 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 					matcher = matchers.ContainLines("some-line-content")
 				})
 
-				it("returns an error", func() {
-					_, err := matcher.Match("some-line-content")
-					Expect(err).To(MatchError("ContainLinesMatcher requires lines with [builder] prefix, found none:     <string>: some-line-content"))
+				context("when the actual is a string", func() {
+					it("returns an error", func() {
+						_, err := matcher.Match("some-line-content")
+						Expect(err).To(MatchError("ContainLinesMatcher requires lines with [builder] prefix, found none:     <string>: some-line-content"))
+					})
+				})
+
+				context("when the actual is a fmt.Stringer", func() {
+					it("returns an error", func() {
+						_, err := matcher.Match(bytes.NewBufferString("some-line-content"))
+						Expect(err).To(MatchError("ContainLinesMatcher requires lines with [builder] prefix, found none:     <string>: some-line-content"))
+					})
 				})
 			})
 		})
