@@ -14,5 +14,6 @@ func TestUnitOccam(t *testing.T) {
 	suite("Docker", testDocker)
 	suite("Pack", testPack)
 	suite("RandomName", testRandomName)
+	suite("Source", testSource)
 	suite.Run(t)
 }
