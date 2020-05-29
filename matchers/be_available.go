@@ -9,10 +9,13 @@ import (
 )
 
 func BeAvailable() types.GomegaMatcher {
-	return &BeAvailableMatcher{}
+	return &BeAvailableMatcher{
+		Docker: occam.NewDocker(),
+	}
 }
 
 type BeAvailableMatcher struct {
+	Docker occam.Docker
 }
 
 func (*BeAvailableMatcher) Match(actual interface{}) (bool, error) {
@@ -23,7 +26,7 @@ func (*BeAvailableMatcher) Match(actual interface{}) (bool, error) {
 
 	response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort()))
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 
 	defer response.Body.Close()
@@ -31,10 +34,24 @@ func (*BeAvailableMatcher) Match(actual interface{}) (bool, error) {
 	return true, nil
 }
 
-func (*BeAvailableMatcher) FailureMessage(actual interface{}) string {
-	return fmt.Sprintf("Expected\n\t%#v\nto be available", actual)
+func (m *BeAvailableMatcher) FailureMessage(actual interface{}) string {
+	container := actual.(occam.Container)
+	message := fmt.Sprintf("Expected\n\tdocker container id: %s\nto be available.", container.ID)
+
+	if logs, _ := m.Docker.Container.Logs.Execute(container.ID); logs != nil {
+		message = fmt.Sprintf("%s\n\nContainer logs:\n\n%s", message, logs)
+	}
+
+	return message
 }
 
-func (*BeAvailableMatcher) NegatedFailureMessage(actual interface{}) string {
-	return fmt.Sprintf("Expected\n\t%#v\nnot to be available", actual)
+func (m *BeAvailableMatcher) NegatedFailureMessage(actual interface{}) string {
+	container := actual.(occam.Container)
+	message := fmt.Sprintf("Expected\n\tdocker container id: %s\nnot to be available.", container.ID)
+
+	if logs, _ := m.Docker.Container.Logs.Execute(container.ID); logs != nil {
+		message = fmt.Sprintf("%s\n\nContainer logs:\n\n%s", message, logs)
+	}
+
+	return message
 }
