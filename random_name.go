@@ -19,5 +19,5 @@ func RandomName() (string, error) {
 		return "", err
 	}
 
-	return strings.ToLower(fmt.Sprintf("occam-%s", guid)), nil
+	return strings.ToLower(fmt.Sprintf("occam.example.com/%s", guid)), nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func CacheVolumeNames(name string) []string {
-	refName := []byte(fmt.Sprintf("index.docker.io/library/%s:latest", name))
+	refName := []byte(fmt.Sprintf("%s:latest", name))
 
 	sum := sha256.Sum256(refName)
 
