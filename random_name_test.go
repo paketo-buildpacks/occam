@@ -15,6 +15,6 @@ func testRandomName(t *testing.T, context spec.G, it spec.S) {
 	it("generates a random name", func() {
 		name, err := occam.RandomName()
 		Expect(err).NotTo(HaveOccurred())
-		Expect(name).To(MatchRegexp(`^occam\-[0123456789abcdefghjkmnpqrstvwxyz]{26}$`))
+		Expect(name).To(MatchRegexp(`^occam\.example\.com/[0123456789abcdefghjkmnpqrstvwxyz]{26}$`))
 	})
 }
