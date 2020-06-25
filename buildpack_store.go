@@ -3,6 +3,7 @@ package occam
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,10 +37,11 @@ type BuildpackStore struct {
 }
 
 func NewBuildpackStore() BuildpackStore {
+	gitToken := os.Getenv("GIT_TOKEN")
 	cacheManager := freezer.NewCacheManager(filepath.Join(os.Getenv("HOME"), ".freezer-cache"))
-	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", os.Getenv("GIT_TOKEN")))
+	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", gitToken ))
 	packager := freezer.NewPackingTools()
-	transport := cargo.NewTransport()
+	transport := cargo.NewTransport().WithHeader(http.Header{"Authorization": []string{fmt.Sprintf("token %s", gitToken)}})
 	fileSystem := freezer.NewFileSystem(ioutil.TempDir)
 	namer := freezer.NewNameGenerator()
 
