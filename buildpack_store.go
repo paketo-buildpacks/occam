@@ -3,14 +3,12 @@ package occam
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/ForestEckhardt/freezer"
 	"github.com/ForestEckhardt/freezer/github"
-	"github.com/paketo-buildpacks/packit/cargo"
 )
 
 //go:generate faux --interface LocalFetcher --output fakes/local_fetcher.go
@@ -39,9 +37,8 @@ type BuildpackStore struct {
 func NewBuildpackStore() BuildpackStore {
 	gitToken := os.Getenv("GIT_TOKEN")
 	cacheManager := freezer.NewCacheManager(filepath.Join(os.Getenv("HOME"), ".freezer-cache"))
-	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", gitToken ))
+	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", gitToken))
 	packager := freezer.NewPackingTools()
-	transport := cargo.NewTransport().WithHeader(http.Header{"Authorization": []string{fmt.Sprintf("token %s", gitToken)}})
 	fileSystem := freezer.NewFileSystem(ioutil.TempDir)
 	namer := freezer.NewNameGenerator()
 
@@ -54,7 +51,7 @@ func NewBuildpackStore() BuildpackStore {
 			),
 			remote: freezer.NewRemoteFetcher(
 				&cacheManager,
-				releaseService, transport, packager,
+				releaseService, packager,
 				fileSystem,
 			),
 			cacheManager: &cacheManager,
