@@ -31,12 +31,12 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 				context("when the actual value does match", func() {
 					it.Before(func() {
 						actual = strings.Join([]string{
-							"[detector] zeroth-line",
-							"[builder] first-line",
-							"[builder] second-line",
-							"[builder] some-line-content",
-							"[builder] fourth-line",
-							"[exporter] fifth-line",
+							"zeroth-line",
+							"first-line",
+							"second-line",
+							"some-line-content",
+							"fourth-line",
+							"fifth-line",
 						}, "\n")
 					})
 
@@ -50,12 +50,12 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 				context("when the actual value does not match", func() {
 					it.Before(func() {
 						actual = strings.Join([]string{
-							"[detector] zeroth-line",
-							"[builder] first-line",
-							"[builder] second-line",
-							"[builder] third-line",
-							"[builder] fourth-line",
-							"[exporter] fifth-line",
+							"zeroth-line",
+							"first-line",
+							"second-line",
+							"third-line",
+							"fourth-line",
+							"fifth-line",
 						}, "\n")
 					})
 
@@ -71,12 +71,12 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 				context("when the actual value does match", func() {
 					it.Before(func() {
 						actual = bytes.NewBufferString(strings.Join([]string{
-							"[detector] zeroth-line",
-							"[builder] first-line",
-							"[builder] second-line",
-							"[builder] some-line-content",
-							"[builder] fourth-line",
-							"[exporter] fifth-line",
+							"zeroth-line",
+							"first-line",
+							"second-line",
+							"some-line-content",
+							"fourth-line",
+							"fifth-line",
 						}, "\n"))
 					})
 
@@ -90,12 +90,12 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 				context("when the actual value does not match", func() {
 					it.Before(func() {
 						actual = bytes.NewBufferString(strings.Join([]string{
-							"[detector] zeroth-line",
-							"[builder] first-line",
-							"[builder] second-line",
-							"[builder] third-line",
-							"[builder] fourth-line",
-							"[exporter] fifth-line",
+							"zeroth-line",
+							"first-line",
+							"second-line",
+							"third-line",
+							"fourth-line",
+							"fifth-line",
 						}, "\n"))
 					})
 
@@ -120,14 +120,14 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 			context("when the actual value does match", func() {
 				it.Before(func() {
 					actual = bytes.NewBufferString(strings.Join([]string{
-						"[detector] zeroth-line",
-						"[builder] first-line",
-						"[builder] second-line",
-						"[builder] some-line-content",
-						"[builder] other-line-content",
-						"[builder] another-line-content",
-						"[builder] sixth-line",
-						"[exporter] seventh-line",
+						"zeroth-line",
+						"first-line",
+						"second-line",
+						"some-line-content",
+						"other-line-content",
+						"another-line-content",
+						"sixth-line",
+						"seventh-line",
 					}, "\n"))
 				})
 
@@ -141,14 +141,14 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 			context("when the actual value does not match", func() {
 				it.Before(func() {
 					actual = bytes.NewBufferString(strings.Join([]string{
-						"[detector] zeroth-line",
-						"[builder] first-line",
-						"[builder] second-line",
-						"[builder] third-line",
-						"[builder] fourth-line",
-						"[builder] fifth-line",
-						"[builder] sixth-line",
-						"[exporter] seventh-line",
+						"zeroth-line",
+						"first-line",
+						"second-line",
+						"third-line",
+						"fourth-line",
+						"fifth-line",
+						"sixth-line",
+						"seventh-line",
 					}, "\n"))
 				})
 
@@ -172,13 +172,34 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 			context("when the actual value does match", func() {
 				it.Before(func() {
 					actual = strings.Join([]string{
+						"zeroth-line",
+						"first-line",
+						"second-line",
+						"some-line-content",
+						"other-line-content",
+						"another-line-content",
+						"sixth-line",
+						"seventh-line",
+					}, "\n")
+				})
+
+				it("returns true", func() {
+					result, err := matcher.Match(actual)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(result).To(BeTrue())
+				})
+			})
+
+			context("when the actual value has line prefixes", func() {
+				it.Before(func() {
+					actual = strings.Join([]string{
 						"[detector] zeroth-line",
 						"[builder] first-line",
 						"[builder] second-line",
 						"[builder] some-line-content",
 						"[builder] other-line-content",
 						"[builder] another-line-content",
-						"[builder] sixth-line",
+						"[analyzer] sixth-line",
 						"[exporter] seventh-line",
 					}, "\n")
 				})
@@ -193,14 +214,14 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 			context("when the actual value does not match", func() {
 				it.Before(func() {
 					actual = strings.Join([]string{
-						"[detector] zeroth-line",
-						"[builder] first-line",
-						"[builder] second-line",
-						"[builder] third-line",
-						"[builder] fourth-line",
-						"[builder] fifth-line",
-						"[builder] sixth-line",
-						"[exporter] seventh-line",
+						"zeroth-line",
+						"first-line",
+						"second-line",
+						"third-line",
+						"fourth-line",
+						"fifth-line",
+						"sixth-line",
+						"seventh-line",
 					}, "\n")
 				})
 
@@ -230,28 +251,8 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 				})
 
 				it("returns an error", func() {
-					_, err := matcher.Match("[builder] some-line-content")
+					_, err := matcher.Match("some-line-content")
 					Expect(err).To(MatchError(ContainSubstring("MatchJSONMatcher matcher requires")))
-				})
-			})
-
-			context("when there are no lines with the [builder] prefix", func() {
-				it.Before(func() {
-					matcher = matchers.ContainLines("some-line-content")
-				})
-
-				context("when the actual is a string", func() {
-					it("returns an error", func() {
-						_, err := matcher.Match("some-line-content")
-						Expect(err).To(MatchError("ContainLinesMatcher requires lines with [builder] prefix, found none:     <string>: some-line-content"))
-					})
-				})
-
-				context("when the actual is a fmt.Stringer", func() {
-					it("returns an error", func() {
-						_, err := matcher.Match(bytes.NewBufferString("some-line-content"))
-						Expect(err).To(MatchError("ContainLinesMatcher requires lines with [builder] prefix, found none:     <string>: some-line-content"))
-					})
 				})
 			})
 		})
@@ -269,20 +270,22 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 
 		it("returns a useful error message", func() {
 			message := matcher.FailureMessage(strings.Join([]string{
-				"[detector] zeroth-line",
-				"[builder] first-line",
-				"[builder] second-line",
-				"[builder] third-line",
-				"[builder] fourth-line",
-				"[exporter] fifth-line",
+				"zeroth-line",
+				"first-line",
+				"second-line",
+				"third-line",
+				"fourth-line",
+				"fifth-line",
 			}, "\n"))
 			Expect(message).To(ContainSubstring(strings.TrimSpace(`
 Expected
     <string>: 
+    zeroth-line
     first-line
     second-line
     third-line
     fourth-line
+    fifth-line
 to contain lines
     <[]interface {} | len:4, cap:4>: [
         "some-line-content",
@@ -314,20 +317,22 @@ but missing
 		context("when all lines appear, but are misordered", func() {
 			it("returns a useful error message", func() {
 				message := matcher.FailureMessage(strings.Join([]string{
-					"[detector] zeroth-line",
-					"[builder] some-stuff-content",
-					"[builder] some-line-content",
-					"[builder] third-line",
-					"[builder] other-line-content",
-					"[exporter] fifth-line",
+					"zeroth-line",
+					"some-stuff-content",
+					"some-line-content",
+					"third-line",
+					"other-line-content",
+					"fifth-line",
 				}, "\n"))
 				Expect(message).To(ContainSubstring(strings.TrimSpace(`
 Expected
     <string>: 
+    zeroth-line
     some-stuff-content
     some-line-content
     third-line
     other-line-content
+    fifth-line
 to contain lines
     <[]interface {} | len:4, cap:4>: [
         "some-line-content",
@@ -359,20 +364,22 @@ all lines appear, but may be misordered
 
 		it("returns a useful error message", func() {
 			message := matcher.NegatedFailureMessage(strings.Join([]string{
-				"[detector] zeroth-line",
-				"[builder] first-line",
-				"[builder] second-line",
-				"[builder] third-line",
-				"[builder] fourth-line",
-				"[exporter] fifth-line",
+				"zeroth-line",
+				"first-line",
+				"second-line",
+				"third-line",
+				"fourth-line",
+				"fifth-line",
 			}, "\n"))
 			Expect(message).To(ContainSubstring(strings.TrimSpace(`
 Expected
     <string>: 
+    zeroth-line
     first-line
     second-line
     third-line
     fourth-line
+    fifth-line
 not to contain lines
     <[]interface {} | len:4, cap:4>: [
         "some-line-content",
