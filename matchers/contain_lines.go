@@ -3,6 +3,7 @@ package matchers
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/onsi/gomega/format"
@@ -29,14 +30,6 @@ func (matcher *containLinesMatcher) Match(actual interface{}) (success bool, err
 	}
 
 	actualLines := matcher.lines(actual)
-
-	if len(actualLines) == 0 {
-		if s, ok := actual.(fmt.Stringer); ok {
-			actual = s.String()
-		}
-
-		return false, fmt.Errorf("ContainLinesMatcher requires lines with [builder] prefix, found none: %s", format.Object(actual, 1))
-	}
 
 	for currentActualLineIndex := 0; currentActualLineIndex < len(actualLines); currentActualLineIndex++ {
 		currentActualLine := actualLines[currentActualLineIndex]
@@ -81,11 +74,11 @@ func (matcher *containLinesMatcher) lines(actual interface{}) []string {
 		raw = actual.(fmt.Stringer).String()
 	}
 
+	re := regexp.MustCompile(`^\[[a-z]+\]\s`)
+
 	var lines []string
 	for _, line := range strings.Split(raw, "\n") {
-		if strings.HasPrefix(line, "[builder]") {
-			lines = append(lines, strings.TrimPrefix(line, "[builder] "))
-		}
+		lines = append(lines, re.ReplaceAllString(line, ""))
 	}
 
 	return lines
