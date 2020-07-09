@@ -6,6 +6,8 @@ github.com/ForestEckhardt/freezer v0.0.0-20200608201425-7d3a68cc71ed h1:7VeDWr4K
 github.com/ForestEckhardt/freezer v0.0.0-20200608201425-7d3a68cc71ed/go.mod h1:iH0M9lXBkfpF3pE9OilMIiZTXKphuMEqfXdo+xvelB8=
 github.com/ForestEckhardt/freezer v0.0.0-20200630185456-a126adb8de1b h1:5ah4g+sbKU2LvMIOeR0+a4PIzrXRxJTqjZwXOdOdQsA=
 github.com/ForestEckhardt/freezer v0.0.0-20200630185456-a126adb8de1b/go.mod h1:Tp5MaiHIfM9TOqTFYlqHsittmOnFGsUcUVDX+AtbNrI=
+github.com/ForestEckhardt/freezer v0.0.1 h1:SH2R9RiIh/0HdCcIymdF/sG2YJuOtf94THPF7L52HBA=
+github.com/ForestEckhardt/freezer v0.0.1/go.mod h1:Tp5MaiHIfM9TOqTFYlqHsittmOnFGsUcUVDX+AtbNrI=
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
 github.com/VividCortex/ewma v1.1.1 h1:MnEK4VOv6n0RSY4vtRe3h11qjxL3+t0B8yOL8iMXdcM=
 github.com/VividCortex/ewma v1.1.1/go.mod h1:2Tkkvm3sRDVXaiyucHiACn4cqf7DpdyLvmxzcbUokwA=
