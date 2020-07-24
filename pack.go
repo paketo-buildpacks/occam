@@ -64,6 +64,7 @@ type PackBuild struct {
 	clearCache bool
 	env        map[string]string
 	noPull     bool
+	trustBuilder bool
 }
 
 func (pb PackBuild) WithBuildpacks(buildpacks ...string) PackBuild {
@@ -93,6 +94,11 @@ func (pb PackBuild) WithEnv(env map[string]string) PackBuild {
 
 func (pb PackBuild) WithNoPull() PackBuild {
 	pb.noPull = true
+	return pb
+}
+
+func (pb PackBuild) WithTrustBuilder() PackBuild {
+	pb.trustBuilder = true
 	return pb
 }
 
@@ -140,6 +146,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 
 	if pb.noPull {
 		args = append(args, "--no-pull")
+	}
+
+	if pb.trustBuilder {
+		args = append(args, "--trust-builder")
 	}
 
 	buildLogBuffer := bytes.NewBuffer(nil)
