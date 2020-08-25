@@ -103,10 +103,11 @@ type DockerContainerRun struct {
 	executable Executable
 	inspect    DockerContainerInspect
 
-	command string
-	env     map[string]string
-	memory  string
-	tty     bool
+	command    string
+	env        map[string]string
+	memory     string
+	tty        bool
+	entrypoint string
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -126,6 +127,11 @@ func (r DockerContainerRun) WithCommand(command string) DockerContainerRun {
 
 func (r DockerContainerRun) WithTTY() DockerContainerRun {
 	r.tty = true
+	return r
+}
+
+func (r DockerContainerRun) WithEntrypoint(entrypoint string) DockerContainerRun {
+	r.entrypoint = entrypoint
 	return r
 }
 
@@ -153,6 +159,10 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 
 	if r.memory != "" {
 		args = append(args, "--memory", r.memory)
+	}
+
+	if r.entrypoint != "" {
+		args = append(args, "--entrypoint", r.entrypoint)
 	}
 
 	args = append(args, imageID)

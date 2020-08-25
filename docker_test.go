@@ -316,6 +316,33 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
+			context("when given optional entrypoint setting", func() {
+				it("sets the entrypoint flag on the run command", func() {
+					container, err := docker.Container.Run.
+						WithEntrypoint("launcher").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+						Ports: map[string]string{
+							"8080": "12345",
+						},
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--env", "PORT=8080",
+						"--publish", "8080",
+						"--publish-all",
+						"--entrypoint", "launcher",
+						"some-image-id",
+					}))
+				})
+			})
+
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
