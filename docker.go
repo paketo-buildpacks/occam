@@ -20,6 +20,7 @@ type Docker struct {
 		Logs    DockerContainerLogs
 		Run     DockerContainerRun
 		Remove  DockerContainerRemove
+		Stop    DockerContainerStop
 	}
 
 	Volume struct {
@@ -42,6 +43,7 @@ func NewDocker() Docker {
 		env:        map[string]string{"PORT": "8080"},
 	}
 	docker.Container.Remove = DockerContainerRemove{executable: executable}
+	docker.Container.Stop = DockerContainerStop{executable: executable}
 
 	docker.Volume.Remove = DockerVolumeRemove{executable: executable}
 
@@ -57,6 +59,7 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Container.Remove.executable = executable
 	d.Container.Run.executable = executable
 	d.Container.Run.inspect = d.Container.Inspect
+	d.Container.Stop.executable = executable
 
 	d.Volume.Remove.executable = executable
 
@@ -230,9 +233,9 @@ type DockerContainerLogs struct {
 	executable Executable
 }
 
-func (i DockerContainerLogs) Execute(containerID string) (fmt.Stringer, error) {
+func (l DockerContainerLogs) Execute(containerID string) (fmt.Stringer, error) {
 	output := bytes.NewBuffer(nil)
-	err := i.executable.Execute(pexec.Execution{
+	err := l.executable.Execute(pexec.Execution{
 		Args:   []string{"container", "logs", containerID},
 		Stdout: output,
 		Stderr: output,
@@ -242,6 +245,24 @@ func (i DockerContainerLogs) Execute(containerID string) (fmt.Stringer, error) {
 	}
 
 	return output, nil
+}
+
+type DockerContainerStop struct {
+	executable Executable
+}
+
+func (s DockerContainerStop) Execute(containerID string) error {
+	output := bytes.NewBuffer(nil)
+	err := s.executable.Execute(pexec.Execution{
+		Args:   []string{"container", "stop", containerID},
+		Stdout: output,
+		Stderr: output,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to stop docker container: %w: %s", err, strings.TrimSpace(output.String()))
+	}
+
+	return nil
 }
 
 type DockerVolumeRemove struct {

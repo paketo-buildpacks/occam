@@ -501,6 +501,32 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 		})
+
+		context("Stop", func() {
+			it("stops the given container", func() {
+				err := docker.Container.Stop.Execute("some-container-id")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"container", "stop", "some-container-id",
+				}))
+			})
+
+			context("failure cases", func() {
+				context("when the executable fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							fmt.Fprintln(execution.Stderr, "Error: No such container: some-container-id")
+							return errors.New("exit status 1")
+						}
+					})
+
+					it("returns an error", func() {
+						err := docker.Container.Stop.Execute("some-container-id")
+						Expect(err).To(MatchError("failed to stop docker container: exit status 1: Error: No such container: some-container-id"))
+					})
+				})
+			})
+		})
 	})
 
 	context("Volume", func() {
