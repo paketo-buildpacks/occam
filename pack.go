@@ -58,13 +58,16 @@ type PackBuild struct {
 	verbose bool
 	noColor bool
 
-	buildpacks []string
-	network    string
-	builder    string
-	clearCache bool
-	env        map[string]string
-	noPull     bool
+	buildpacks   []string
+	network      string
+	builder      string
+	clearCache   bool
+	env          map[string]string
 	trustBuilder bool
+	pullPolicy   string
+
+	// TODO: remove after deprecation period
+	noPull bool
 }
 
 func (pb PackBuild) WithBuildpacks(buildpacks ...string) PackBuild {
@@ -92,8 +95,14 @@ func (pb PackBuild) WithEnv(env map[string]string) PackBuild {
 	return pb
 }
 
+// Deprecated: Use WithPullPolicy("never") instead.
 func (pb PackBuild) WithNoPull() PackBuild {
 	pb.noPull = true
+	return pb
+}
+
+func (pb PackBuild) WithPullPolicy(pullPolicy string) PackBuild {
+	pb.pullPolicy = pullPolicy
 	return pb
 }
 
@@ -146,6 +155,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 
 	if pb.noPull {
 		args = append(args, "--no-pull")
+	}
+
+	if pb.pullPolicy != "" {
+		args = append(args, "--pull-policy", pb.pullPolicy)
 	}
 
 	if pb.trustBuilder {
