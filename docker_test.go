@@ -343,6 +343,54 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
+			context("when given optional bindport setting", func() {
+				it.Before(func() {
+					executeArgs = [][]string{}
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						executeArgs = append(executeArgs, execution.Args)
+						fmt.Fprintln(execution.Stdout, `[
+							{
+								"Id": "some-container-id",
+								"NetworkSettings": {
+									"Ports": {
+										"3000/tcp": [
+											{
+												"HostIp": "0.0.0.0",
+												"HostPort": "12345"
+											}
+										]
+									}
+								}
+							}
+						]`)
+						return nil
+					}
+				})
+
+				it("sets the publish flag to use the bindport on the run command", func() {
+					container, err := docker.Container.Run.
+						WithBindport("3000").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+						Ports: map[string]string{
+							"3000": "12345",
+						},
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--publish", "3000",
+						"--publish-all",
+						"some-image-id",
+					}))
+				})
+			})
+
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {

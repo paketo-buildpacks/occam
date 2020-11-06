@@ -111,6 +111,7 @@ type DockerContainerRun struct {
 	memory     string
 	tty        bool
 	entrypoint string
+	bindport   string
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -138,6 +139,12 @@ func (r DockerContainerRun) WithEntrypoint(entrypoint string) DockerContainerRun
 	return r
 }
 
+func (r DockerContainerRun) WithBindport(bindport string) DockerContainerRun {
+	r.bindport = bindport
+	delete(r.env, "PORT")
+	return r
+}
+
 func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 	args := []string{"container", "run", "--detach"}
 
@@ -156,6 +163,10 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 		for _, key := range keys {
 			args = append(args, "--env", fmt.Sprintf("%s=%s", key, r.env[key]))
 		}
+	}
+
+	if r.bindport != "" {
+		r.env["PORT"] = r.bindport
 	}
 
 	args = append(args, "--publish", r.env["PORT"], "--publish-all")
