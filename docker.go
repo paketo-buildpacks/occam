@@ -40,8 +40,8 @@ func NewDocker() Docker {
 	docker.Container.Run = DockerContainerRun{
 		executable: executable,
 		inspect:    docker.Container.Inspect,
-		env:        map[string]string{"PORT": "8080"},
 	}
+
 	docker.Container.Remove = DockerContainerRemove{executable: executable}
 	docker.Container.Stop = DockerContainerStop{executable: executable}
 
@@ -106,12 +106,13 @@ type DockerContainerRun struct {
 	executable Executable
 	inspect    DockerContainerInspect
 
-	command    string
-	env        map[string]string
-	memory     string
-	tty        bool
-	entrypoint string
-	bindport   string
+	command         string
+	env             map[string]string
+	memory          string
+	tty             bool
+	entrypoint      string
+	publishAllPorts string
+	publishPort     []string
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -139,9 +140,13 @@ func (r DockerContainerRun) WithEntrypoint(entrypoint string) DockerContainerRun
 	return r
 }
 
-func (r DockerContainerRun) WithBindport(bindport string) DockerContainerRun {
-	r.bindport = bindport
-	delete(r.env, "PORT")
+func (r DockerContainerRun) WithPublishAll(port string) DockerContainerRun {
+	r.publishAllPorts = port
+	return r
+}
+
+func (r DockerContainerRun) WithPublish(hostPort, containerPort string) DockerContainerRun {
+	r.publishPort = []string{hostPort, containerPort}
 	return r
 }
 
@@ -165,11 +170,13 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 		}
 	}
 
-	if r.bindport != "" {
-		r.env["PORT"] = r.bindport
+	if len(r.publishPort) > 0 {
+		args = append(args, "--publish", r.publishPort[0], ":", r.publishPort[1])
 	}
 
-	args = append(args, "--publish", r.env["PORT"], "--publish-all")
+	if r.publishAllPorts != "" {
+		args = append(args, "--publish", r.publishAllPorts, "--publish-all")
+	}
 
 	if r.memory != "" {
 		args = append(args, "--memory", r.memory)
