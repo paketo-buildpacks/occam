@@ -165,21 +165,10 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					case 2:
 						fmt.Fprintln(execution.Stdout, `[
 							{
-								"Id": "some-container-id",
-								"NetworkSettings": {
-									"Ports": {
-										"8080/tcp": [
-											{
-												"HostIp": "0.0.0.0",
-												"HostPort": "12345"
-											}
-										]
-									}
-								}
+								"Id": "some-container-id"
 							}
 						]`)
 					}
-
 					return nil
 				}
 			})
@@ -189,18 +178,12 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(container).To(Equal(occam.Container{
 					ID: "some-container-id",
-					Ports: map[string]string{
-						"8080": "12345",
-					},
 				}))
 
 				Expect(executeArgs).To(HaveLen(2))
 				Expect(executeArgs[0]).To(Equal([]string{
 					"container", "run",
 					"--detach",
-					"--env", "PORT=8080",
-					"--publish", "8080",
-					"--publish-all",
 					"some-image-id",
 				}))
 			})
@@ -217,8 +200,58 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(container).To(Equal(occam.Container{
 						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--env", "PORT=1234",
+						"--env", "SOME_VAR=some-value",
+						"some-image-id",
+					}))
+				})
+			})
+
+			// TODO: figure out how to override HostPort
+			context("when given optional with publish port setting", func() {
+				it.Before(func() {
+					executeArgs = [][]string{}
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						executeArgs = append(executeArgs, execution.Args)
+						fmt.Fprintln(execution.Stdout, `[
+							{
+								"Id": "some-container-id",
+								"NetworkSettings": {
+									"Ports": {
+										"3000/tcp": [
+											{
+												"HostIp": "0.0.0.0",
+												"HostPort": "54321"
+											}
+										]
+									}
+								}
+							}
+						]`)
+						return nil
+					}
+				})
+
+				it("sets the published port mapping on the run command", func() {
+					container, err := docker.Container.Run.
+						WithEnv(map[string]string{
+							"PORT":     "1234",
+							"SOME_VAR": "some-value",
+						}).
+						WithPublish("54321", "3000").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
 						Ports: map[string]string{
-							"8080": "12345",
+							"3000": "54321",
 						},
 					}))
 
@@ -228,122 +261,13 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						"--detach",
 						"--env", "PORT=1234",
 						"--env", "SOME_VAR=some-value",
-						"--publish", "1234",
-						"--publish-all",
+						"--publish", "54321", ":", "3000",
 						"some-image-id",
 					}))
 				})
 			})
 
-			context("when given optional memory setting", func() {
-				it("sets the --memory flag on the run command", func() {
-					container, err := docker.Container.Run.
-						WithMemory("2GB").
-						Execute("some-image-id")
-
-					Expect(err).NotTo(HaveOccurred())
-					Expect(container).To(Equal(occam.Container{
-						ID: "some-container-id",
-						Ports: map[string]string{
-							"8080": "12345",
-						},
-					}))
-
-					Expect(executeArgs).To(HaveLen(2))
-					Expect(executeArgs[0]).To(Equal([]string{
-						"container", "run",
-						"--detach",
-						"--env", "PORT=8080",
-						"--publish", "8080",
-						"--publish-all",
-						"--memory", "2GB",
-						"some-image-id",
-					}))
-				})
-			})
-
-			context("when given optional command setting", func() {
-				it("sets the command field on the run command", func() {
-					container, err := docker.Container.Run.
-						WithCommand("/some/command").
-						Execute("some-image-id")
-
-					Expect(err).NotTo(HaveOccurred())
-					Expect(container).To(Equal(occam.Container{
-						ID: "some-container-id",
-						Ports: map[string]string{
-							"8080": "12345",
-						},
-					}))
-
-					Expect(executeArgs).To(HaveLen(2))
-					Expect(executeArgs[0]).To(Equal([]string{
-						"container", "run",
-						"--detach",
-						"--env", "PORT=8080",
-						"--publish", "8080",
-						"--publish-all",
-						"some-image-id",
-						"/some/command",
-					}))
-				})
-			})
-
-			context("when given optional tty setting", func() {
-				it("sets the tty flag on the run command", func() {
-					container, err := docker.Container.Run.
-						WithTTY().
-						Execute("some-image-id")
-
-					Expect(err).NotTo(HaveOccurred())
-					Expect(container).To(Equal(occam.Container{
-						ID: "some-container-id",
-						Ports: map[string]string{
-							"8080": "12345",
-						},
-					}))
-
-					Expect(executeArgs).To(HaveLen(2))
-					Expect(executeArgs[0]).To(Equal([]string{
-						"container", "run",
-						"--detach",
-						"--tty",
-						"--env", "PORT=8080",
-						"--publish", "8080",
-						"--publish-all",
-						"some-image-id",
-					}))
-				})
-			})
-
-			context("when given optional entrypoint setting", func() {
-				it("sets the entrypoint flag on the run command", func() {
-					container, err := docker.Container.Run.
-						WithEntrypoint("launcher").
-						Execute("some-image-id")
-
-					Expect(err).NotTo(HaveOccurred())
-					Expect(container).To(Equal(occam.Container{
-						ID: "some-container-id",
-						Ports: map[string]string{
-							"8080": "12345",
-						},
-					}))
-
-					Expect(executeArgs).To(HaveLen(2))
-					Expect(executeArgs[0]).To(Equal([]string{
-						"container", "run",
-						"--detach",
-						"--env", "PORT=8080",
-						"--publish", "8080",
-						"--publish-all",
-						"--entrypoint", "launcher",
-						"some-image-id",
-					}))
-				})
-			})
-
-			context("when given optional bindport setting", func() {
+			context("when given optional with publish all port setting", func() {
 				it.Before(func() {
 					executeArgs = [][]string{}
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
@@ -367,9 +291,13 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					}
 				})
 
-				it("sets the publish flag to use the bindport on the run command", func() {
+				it("sets the published port on the run command", func() {
 					container, err := docker.Container.Run.
-						WithBindport("3000").
+						WithEnv(map[string]string{
+							"PORT":     "1234",
+							"SOME_VAR": "some-value",
+						}).
+						WithPublishAll("3000").
 						Execute("some-image-id")
 
 					Expect(err).NotTo(HaveOccurred())
@@ -384,8 +312,93 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					Expect(executeArgs[0]).To(Equal([]string{
 						"container", "run",
 						"--detach",
-						"--publish", "3000",
-						"--publish-all",
+						"--env", "PORT=1234",
+						"--env", "SOME_VAR=some-value",
+						"--publish", "3000", "--publish-all",
+						"some-image-id",
+					}))
+				})
+			})
+
+			context("when given optional memory setting", func() {
+				it("sets the --memory flag on the run command", func() {
+					container, err := docker.Container.Run.
+						WithMemory("2GB").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--memory", "2GB",
+						"some-image-id",
+					}))
+				})
+			})
+
+			context("when given optional command setting", func() {
+				it("sets the command field on the run command", func() {
+					container, err := docker.Container.Run.
+						WithCommand("/some/command").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"some-image-id",
+						"/some/command",
+					}))
+				})
+			})
+
+			context("when given optional tty setting", func() {
+				it("sets the tty flag on the run command", func() {
+					container, err := docker.Container.Run.
+						WithTTY().
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--tty",
+						"some-image-id",
+					}))
+				})
+			})
+
+			context("when given optional entrypoint setting", func() {
+				it("sets the entrypoint flag on the run command", func() {
+					container, err := docker.Container.Run.
+						WithEntrypoint("launcher").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--entrypoint", "launcher",
 						"some-image-id",
 					}))
 				})
