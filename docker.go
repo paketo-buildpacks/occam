@@ -106,13 +106,13 @@ type DockerContainerRun struct {
 	executable Executable
 	inspect    DockerContainerInspect
 
-	command     string
-	env         map[string]string
-	memory      string
-	tty         bool
-	entrypoint  string
-	publishPort string
-	publishAll  bool
+	command      string
+	env          map[string]string
+	memory       string
+	tty          bool
+	entrypoint   string
+	publishPorts []string
+	publishAll   bool
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -141,14 +141,13 @@ func (r DockerContainerRun) WithEntrypoint(entrypoint string) DockerContainerRun
 }
 
 func (r DockerContainerRun) WithPublish(value string) DockerContainerRun {
-	r.publishPort = value
+	r.publishPorts = append(r.publishPorts, value)
 	return r
 }
 
 func (r DockerContainerRun) WithPublishAll(value string) DockerContainerRun {
-	r.publishPort = value
 	r.publishAll = true
-	return r
+	return r.WithPublish(value)
 }
 
 func (r DockerContainerRun) Execute(imageID string) (Container, error) {
@@ -171,8 +170,10 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 		}
 	}
 
-	if r.publishPort != "" {
-		args = append(args, "--publish", r.publishPort)
+	if len(r.publishPorts) > 0 {
+		for _, port := range r.publishPorts {
+			args = append(args, "--publish", port)
+		}
 	}
 
 	if r.publishAll {

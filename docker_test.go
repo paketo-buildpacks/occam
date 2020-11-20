@@ -284,6 +284,70 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						}))
 					})
 				})
+
+				context("when given multiple optional ports to publish", func() {
+					it.Before(func() {
+						executeArgs = [][]string{}
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							executeArgs = append(executeArgs, execution.Args)
+							fmt.Fprintln(execution.Stdout, `[
+							{
+								"Id": "some-container-id",
+								"NetworkSettings": {
+									"Ports": {
+										"3000/tcp": [
+											{
+												"HostIp": "0.0.0.0",
+												"HostPort": "34321"
+											}
+										],
+										"4000/tcp": [
+											{
+												"HostIp": "0.0.0.0",
+												"HostPort": "44321"
+											}
+										],
+										"5000/tcp": [
+											{
+												"HostIp": "0.0.0.0",
+												"HostPort": "54321"
+											}
+										]
+									}
+								}
+							}
+						]`)
+							return nil
+						}
+					})
+					it("sets all of the published ports in the run command", func() {
+						container, err := docker.Container.Run.
+							WithPublish("3000").
+							WithPublish("4000").
+							WithPublishAll("5000").
+							Execute("some-image-id")
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(container).To(Equal(occam.Container{
+							ID: "some-container-id",
+							Ports: map[string]string{
+								"3000": "34321",
+								"4000": "44321",
+								"5000": "54321",
+							},
+						}))
+
+						Expect(executeArgs).To(HaveLen(2))
+						Expect(executeArgs[0]).To(Equal([]string{
+							"container", "run",
+							"--detach",
+							"--publish", "3000",
+							"--publish", "4000",
+							"--publish", "5000", "--publish-all",
+							"some-image-id",
+						}))
+					})
+				})
 			})
 
 			context("when given optional memory setting", func() {
