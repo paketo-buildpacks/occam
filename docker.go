@@ -106,13 +106,13 @@ type DockerContainerRun struct {
 	executable Executable
 	inspect    DockerContainerInspect
 
-	command         string
-	env             map[string]string
-	memory          string
-	tty             bool
-	entrypoint      string
-	publishAllPorts string
-	publishPort     []string
+	command     string
+	env         map[string]string
+	memory      string
+	tty         bool
+	entrypoint  string
+	publishPort string
+	publishAll  bool
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -140,13 +140,14 @@ func (r DockerContainerRun) WithEntrypoint(entrypoint string) DockerContainerRun
 	return r
 }
 
-func (r DockerContainerRun) WithPublishAll(port string) DockerContainerRun {
-	r.publishAllPorts = port
+func (r DockerContainerRun) WithPublish(value string) DockerContainerRun {
+	r.publishPort = value
 	return r
 }
 
-func (r DockerContainerRun) WithPublish(hostPort, containerPort string) DockerContainerRun {
-	r.publishPort = []string{hostPort, containerPort}
+func (r DockerContainerRun) WithPublishAll(value string) DockerContainerRun {
+	r.publishPort = value
+	r.publishAll = true
 	return r
 }
 
@@ -170,12 +171,12 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 		}
 	}
 
-	if len(r.publishPort) > 0 {
-		args = append(args, "--publish", r.publishPort[0], ":", r.publishPort[1])
+	if r.publishPort != "" {
+		args = append(args, "--publish", r.publishPort)
 	}
 
-	if r.publishAllPorts != "" {
-		args = append(args, "--publish", r.publishAllPorts, "--publish-all")
+	if r.publishAll {
+		args = append(args, "--publish-all")
 	}
 
 	if r.memory != "" {

@@ -24,7 +24,10 @@ func (*BeAvailableMatcher) Match(actual interface{}) (bool, error) {
 		return false, fmt.Errorf("BeAvailableMatcher expects an occam.Container, received %T", actual)
 	}
 
-	response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort()))
+	// Get a container port in order to look up the corresponding host port.
+	containerPort := container.ContainerPorts()[0]
+
+	response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort(containerPort)))
 	if err != nil {
 		return false, nil
 	}
