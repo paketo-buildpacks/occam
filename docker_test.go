@@ -213,8 +213,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
-			// TODO: figure out how to override HostPort
-			context("when given optional with publish port setting", func() {
+			context("port publishing", func() {
 				it.Before(func() {
 					executeArgs = [][]string{}
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
@@ -238,85 +237,52 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					}
 				})
 
-				it("sets the published port mapping on the run command", func() {
-					container, err := docker.Container.Run.
-						WithEnv(map[string]string{
-							"PORT":     "1234",
-							"SOME_VAR": "some-value",
-						}).
-						WithPublish("54321", "3000").
-						Execute("some-image-id")
+				context("when given optional with publish port setting", func() {
+					it("sets the published port mapping on the run command", func() {
+						container, err := docker.Container.Run.
+							WithPublish("3000").
+							Execute("some-image-id")
 
-					Expect(err).NotTo(HaveOccurred())
-					Expect(container).To(Equal(occam.Container{
-						ID: "some-container-id",
-						Ports: map[string]string{
-							"3000": "54321",
-						},
-					}))
+						Expect(err).NotTo(HaveOccurred())
+						Expect(container).To(Equal(occam.Container{
+							ID: "some-container-id",
+							Ports: map[string]string{
+								"3000": "54321",
+							},
+						}))
 
-					Expect(executeArgs).To(HaveLen(2))
-					Expect(executeArgs[0]).To(Equal([]string{
-						"container", "run",
-						"--detach",
-						"--env", "PORT=1234",
-						"--env", "SOME_VAR=some-value",
-						"--publish", "54321", ":", "3000",
-						"some-image-id",
-					}))
-				})
-			})
-
-			context("when given optional with publish all port setting", func() {
-				it.Before(func() {
-					executeArgs = [][]string{}
-					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						executeArgs = append(executeArgs, execution.Args)
-						fmt.Fprintln(execution.Stdout, `[
-							{
-								"Id": "some-container-id",
-								"NetworkSettings": {
-									"Ports": {
-										"3000/tcp": [
-											{
-												"HostIp": "0.0.0.0",
-												"HostPort": "12345"
-											}
-										]
-									}
-								}
-							}
-						]`)
-						return nil
-					}
+						Expect(executeArgs).To(HaveLen(2))
+						Expect(executeArgs[0]).To(Equal([]string{
+							"container", "run",
+							"--detach",
+							"--publish", "3000",
+							"some-image-id",
+						}))
+					})
 				})
 
-				it("sets the published port on the run command", func() {
-					container, err := docker.Container.Run.
-						WithEnv(map[string]string{
-							"PORT":     "1234",
-							"SOME_VAR": "some-value",
-						}).
-						WithPublishAll("3000").
-						Execute("some-image-id")
+				context("when given optional publish all port setting", func() {
+					it("sets the published port and --publish-all flag on the run command", func() {
+						container, err := docker.Container.Run.
+							WithPublishAll("3000").
+							Execute("some-image-id")
 
-					Expect(err).NotTo(HaveOccurred())
-					Expect(container).To(Equal(occam.Container{
-						ID: "some-container-id",
-						Ports: map[string]string{
-							"3000": "12345",
-						},
-					}))
+						Expect(err).NotTo(HaveOccurred())
+						Expect(container).To(Equal(occam.Container{
+							ID: "some-container-id",
+							Ports: map[string]string{
+								"3000": "54321",
+							},
+						}))
 
-					Expect(executeArgs).To(HaveLen(2))
-					Expect(executeArgs[0]).To(Equal([]string{
-						"container", "run",
-						"--detach",
-						"--env", "PORT=1234",
-						"--env", "SOME_VAR=some-value",
-						"--publish", "3000", "--publish-all",
-						"some-image-id",
-					}))
+						Expect(executeArgs).To(HaveLen(2))
+						Expect(executeArgs[0]).To(Equal([]string{
+							"container", "run",
+							"--detach",
+							"--publish", "3000", "--publish-all",
+							"some-image-id",
+						}))
+					})
 				})
 			})
 
