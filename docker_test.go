@@ -262,9 +262,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 
 				context("when given optional publish all port setting", func() {
-					it("sets the published port and --publish-all flag on the run command", func() {
+					it("sets the --publish-all flag on the run command", func() {
 						container, err := docker.Container.Run.
-							WithPublishAll("3000").
+							WithPublishAll().
 							Execute("some-image-id")
 
 						Expect(err).NotTo(HaveOccurred())
@@ -279,7 +279,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						Expect(executeArgs[0]).To(Equal([]string{
 							"container", "run",
 							"--detach",
-							"--publish", "3000", "--publish-all",
+							"--publish-all",
 							"some-image-id",
 						}))
 					})
@@ -324,7 +324,8 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						container, err := docker.Container.Run.
 							WithPublish("3000").
 							WithPublish("4000").
-							WithPublishAll("5000").
+							WithPublish("5000").
+							WithPublishAll().
 							Execute("some-image-id")
 
 						Expect(err).NotTo(HaveOccurred())
@@ -343,7 +344,8 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 							"--detach",
 							"--publish", "3000",
 							"--publish", "4000",
-							"--publish", "5000", "--publish-all",
+							"--publish", "5000",
+							"--publish-all",
 							"some-image-id",
 						}))
 					})

@@ -45,6 +45,9 @@ func testBeAvailable(t *testing.T, context spec.G, it spec.S) {
 			actual = occam.Container{
 				Ports: map[string]string{
 					"8080": serverURL.Port(),
+					"3000": "1234",
+					"4000": "4321",
+					"5000": "5678",
 				},
 				Env: map[string]string{
 					"PORT": "8080",
