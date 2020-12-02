@@ -145,9 +145,9 @@ func (r DockerContainerRun) WithPublish(value string) DockerContainerRun {
 	return r
 }
 
-func (r DockerContainerRun) WithPublishAll(value string) DockerContainerRun {
+func (r DockerContainerRun) WithPublishAll() DockerContainerRun {
 	r.publishAll = true
-	return r.WithPublish(value)
+	return r
 }
 
 func (r DockerContainerRun) Execute(imageID string) (Container, error) {

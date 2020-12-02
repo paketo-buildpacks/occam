@@ -51,15 +51,6 @@ func NewContainerFromInspectOutput(output []byte) (Container, error) {
 	return container, nil
 }
 
-// Returns all of the container's ports
-func (c Container) ContainerPorts() []string {
-	ports := make([]string, 0, len(c.Ports))
-	for port := range c.Ports {
-		ports = append(ports, port)
-	}
-	return ports
-}
-
 func (c Container) HostPort(value string) string {
 	return c.Ports[value]
 }

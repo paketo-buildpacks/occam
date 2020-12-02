@@ -25,16 +25,18 @@ func (*BeAvailableMatcher) Match(actual interface{}) (bool, error) {
 	}
 
 	// Get a container port in order to look up the corresponding host port.
-	containerPort := container.ContainerPorts()[0]
+	for port := range container.Ports {
+		response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort(port)))
+		if response != nil {
+			response.Body.Close()
+		}
 
-	response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort(containerPort)))
-	if err != nil {
-		return false, nil
+		if err == nil {
+			return true, nil
+		}
 	}
 
-	defer response.Body.Close()
-
-	return true, nil
+	return false, nil
 }
 
 func (m *BeAvailableMatcher) FailureMessage(actual interface{}) string {
