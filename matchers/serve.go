@@ -61,7 +61,7 @@ func (matcher *ServeMatcher) Match(actual interface{}) (success bool, err error)
 func (matcher *ServeMatcher) FailureMessage(actual interface{}) (message string) {
 	container := actual.(occam.Container)
 
-	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nto equal:\n\n\t%s",
+	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nto contain:\n\n\t%s",
 		container.ID,
 		matcher.ActualResponse,
 		matcher.ExpectedResponse,
@@ -77,7 +77,7 @@ func (matcher *ServeMatcher) FailureMessage(actual interface{}) (message string)
 func (matcher *ServeMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	container := actual.(occam.Container)
 
-	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nnot to equal:\n\n\t%s",
+	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nnot to contain:\n\n\t%s",
 		container.ID,
 		matcher.ActualResponse,
 		matcher.ExpectedResponse,

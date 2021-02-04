@@ -324,7 +324,7 @@ Expected the response from docker container some-container-id:
 
 	actual response
 
-to equal:
+to contain:
 
 	expected response
 
@@ -363,7 +363,7 @@ Expected the response from docker container some-container-id:
 
 	actual response
 
-not to equal:
+not to contain:
 
 	expected response
 
