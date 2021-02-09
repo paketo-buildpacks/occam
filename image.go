@@ -8,6 +8,7 @@ import (
 type Image struct {
 	ID         string
 	Buildpacks []ImageBuildpackMetadata
+	Labels     map[string]string
 }
 
 type ImageBuildpackMetadata struct {
@@ -27,9 +28,7 @@ func NewImageFromInspectOutput(output []byte) (Image, error) {
 	var inspect []struct {
 		ID     string `json:"Id"`
 		Config struct {
-			Labels struct {
-				LifecycleMetadata string `json:"io.buildpacks.lifecycle.metadata"`
-			} `json:"Labels"`
+			Labels map[string]string `json:"Labels"`
 		} `json:"Config"`
 	}
 	err := json.Unmarshal(output, &inspect)
@@ -49,7 +48,7 @@ func NewImageFromInspectOutput(output []byte) (Image, error) {
 			} `json:"layers"`
 		} `json:"buildpacks"`
 	}
-	err = json.Unmarshal([]byte(inspect[0].Config.Labels.LifecycleMetadata), &metadata)
+	err = json.Unmarshal([]byte(inspect[0].Config.Labels["io.buildpacks.lifecycle.metadata"]), &metadata)
 	if err != nil {
 		return Image{}, fmt.Errorf("failed to inspect docker image: %w", err)
 	}
@@ -75,5 +74,6 @@ func NewImageFromInspectOutput(output []byte) (Image, error) {
 	return Image{
 		ID:         inspect[0].ID,
 		Buildpacks: buildpacks,
+		Labels:     inspect[0].Config.Labels,
 	}, nil
 }

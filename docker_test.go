@@ -36,7 +36,8 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 							"Id": "some-image-id",
 							"Config": {
 								"Labels": {
-									"io.buildpacks.lifecycle.metadata": "{\"buildpacks\": [{\"key\": \"some-buildpack\", \"layers\": {\"some-layer\": {\"sha\": \"some-sha\", \"build\": true, \"launch\": true, \"cache\": true, \"data\": {\"some-key\": \"some-value\"}}}}]}"
+									"io.buildpacks.lifecycle.metadata": "{\"buildpacks\": [{\"key\": \"some-buildpack\", \"layers\": {\"some-layer\": {\"sha\": \"some-sha\", \"build\": true, \"launch\": true, \"cache\": true, \"data\": {\"some-key\": \"some-value\"}}}}]}",
+									"some-other-label": "some-value"
 								}
 							}
 						}
@@ -66,6 +67,10 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 								},
 							},
 						},
+					},
+					Labels: map[string]string{
+						"io.buildpacks.lifecycle.metadata": "{\"buildpacks\": [{\"key\": \"some-buildpack\", \"layers\": {\"some-layer\": {\"sha\": \"some-sha\", \"build\": true, \"launch\": true, \"cache\": true, \"data\": {\"some-key\": \"some-value\"}}}}]}",
+						"some-other-label":                 "some-value",
 					},
 				}))
 
