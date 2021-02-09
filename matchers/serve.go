@@ -10,10 +10,11 @@ import (
 	"github.com/paketo-buildpacks/occam"
 )
 
-func Serve(expectedResponse string, port string) types.GomegaMatcher {
+func Serve(expectedResponse string, port string, endpoint string) types.GomegaMatcher {
 	return &ServeMatcher{
 		ExpectedResponse: expectedResponse,
 		port:             port,
+		endpoint:         endpoint,
 		Docker:           occam.NewDocker(),
 		ActualResponse:   "",
 	}
@@ -22,6 +23,7 @@ func Serve(expectedResponse string, port string) types.GomegaMatcher {
 type ServeMatcher struct {
 	ExpectedResponse string
 	port             string
+	endpoint         string
 	Docker           occam.Docker
 	ActualResponse   string
 }
@@ -36,7 +38,7 @@ func (matcher *ServeMatcher) Match(actual interface{}) (success bool, err error)
 		return false, fmt.Errorf("ServeMatcher looking for response from container port %s which is not in container port map", matcher.port)
 	}
 
-	response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort(matcher.port)))
+	response, err := http.Get(fmt.Sprintf("http://localhost:%s%s", container.HostPort(matcher.port), matcher.endpoint))
 
 	if err != nil {
 		return false, err
