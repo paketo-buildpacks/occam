@@ -28,7 +28,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		matcher = matchers.Serve("some string", "8080")
+		matcher = matchers.Serve("some string", "8080", "/endpoint")
 	})
 
 	context("Match", func() {
@@ -46,7 +46,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 					}
 
 					switch req.URL.Path {
-					case "/":
+					case "/endpoint":
 						w.WriteHeader(http.StatusOK)
 						fmt.Fprintln(w, "some string")
 					default:
@@ -90,7 +90,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 					}
 
 					switch req.URL.Path {
-					case "/":
+					case "/endpoint":
 						// do nothing
 					default:
 						fmt.Fprintln(w, "unknown path")
@@ -133,7 +133,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 					}
 
 					switch req.URL.Path {
-					case "/":
+					case "/endpoint":
 						w.WriteHeader(http.StatusNotFound)
 						fmt.Fprintln(w, "some string")
 					default:
@@ -177,7 +177,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 					}
 
 					switch req.URL.Path {
-					case "/":
+					case "/endpoint":
 						w.WriteHeader(http.StatusOK)
 						fmt.Fprintln(w, "another string")
 					default:
@@ -222,7 +222,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 						}
 
 						switch req.URL.Path {
-						case "/":
+						case "/endpoint":
 							w.WriteHeader(http.StatusOK)
 							fmt.Fprintln(w, "some string")
 						default:
@@ -262,7 +262,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 						}
 
 						switch req.URL.Path {
-						case "/":
+						case "/endpoint":
 							w.WriteHeader(http.StatusOK)
 							fmt.Fprintln(w, "some string")
 						default:
