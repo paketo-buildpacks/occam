@@ -10,11 +10,15 @@ import (
 	"github.com/paketo-buildpacks/occam"
 )
 
-func Serve(expectedResponse string, port string, endpoint string) types.GomegaMatcher {
+type ServeMatcherInterface interface {
+	types.GomegaMatcher
+	OnPort(string) *ServeMatcher
+	WithEndpoint(string) *ServeMatcher
+}
+
+func Serve(expectedResponse string) ServeMatcherInterface {
 	return &ServeMatcher{
 		ExpectedResponse: expectedResponse,
-		port:             port,
-		endpoint:         endpoint,
 		Docker:           occam.NewDocker(),
 		ActualResponse:   "",
 	}
@@ -28,13 +32,36 @@ type ServeMatcher struct {
 	ActualResponse   string
 }
 
+func (sm *ServeMatcher) OnPort(port string) *ServeMatcher {
+	sm.port = port
+	return sm
+}
+
+func (sm *ServeMatcher) WithEndpoint(endpoint string) *ServeMatcher {
+	sm.endpoint = endpoint
+	return sm
+}
+
 func (matcher *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 	container, ok := actual.(occam.Container)
 	if !ok {
 		return false, fmt.Errorf("ServeMatcher expects an occam.Container, received %T", actual)
 	}
 
+	// no port specified, and there's only one to choose from
+	if matcher.port == "" {
+		if len(container.Ports) == 1 {
+			for p := range container.Ports {
+				matcher.port = p
+				break
+			}
+		} else {
+			return false, fmt.Errorf("container has multiple port mappings, but none were specified. Please specify via the OnPort method")
+		}
+	}
+
 	if _, ok := container.Ports[matcher.port]; !ok {
+		// EITHER: you have multiple ports, didn't specify OR you specified a bad port
 		return false, fmt.Errorf("ServeMatcher looking for response from container port %s which is not in container port map", matcher.port)
 	}
 
