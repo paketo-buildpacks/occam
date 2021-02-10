@@ -23,7 +23,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		matcher matchers.ServeMatcherInterface
+		matcher *matchers.ServeMatcher
 	)
 
 	it.Before(func() {
@@ -35,8 +35,9 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			actual interface{}
 			server *httptest.Server
 		)
+
 		it.Before(func() {
-			matcher.OnPort("8080").WithEndpoint("/endpoint")
+			matcher.OnPort(8080).WithEndpoint("/endpoint")
 		})
 
 		context("the http request succeeds and response contains substring", func() {
@@ -76,6 +77,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			it.After(func() {
 				server.Close()
 			})
+
 			it("returns true", func() {
 				result, err := matcher.Match(actual)
 				Expect(err).NotTo(HaveOccurred())
@@ -119,6 +121,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			it.After(func() {
 				server.Close()
 			})
+
 			it("returns false", func() {
 				result, err := matcher.Match(actual)
 				Expect(err).NotTo(HaveOccurred())
@@ -163,6 +166,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			it.After(func() {
 				server.Close()
 			})
+
 			it("returns false", func() {
 				result, err := matcher.Match(actual)
 				Expect(err).NotTo(HaveOccurred())
@@ -207,6 +211,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			it.After(func() {
 				server.Close()
 			})
+
 			it("returns false", func() {
 				result, err := matcher.Match(actual)
 				Expect(err).NotTo(HaveOccurred())
@@ -246,6 +251,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				it.After(func() {
 					server.Close()
 				})
+
 				it("returns an error", func() {
 					result, err := matcher.Match(actual)
 					Expect(err).To(MatchError(ContainSubstring("ServeMatcher looking for response from container port 8080 which is not in container port map")))
@@ -287,6 +293,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				it.After(func() {
 					server.Close()
 				})
+
 				it("returns an error", func() {
 					result, err := matcher.Match(actual)
 					Expect(err).To(HaveOccurred())
@@ -301,6 +308,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			actual interface{}
 			server *httptest.Server
 		)
+
 		context("there's only one container port mapping", func() {
 			it.Before(func() {
 				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -335,6 +343,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			it.After(func() {
 				server.Close()
 			})
+
 			it("returns true", func() {
 				result, err := matcher.Match(actual)
 				Expect(err).NotTo(HaveOccurred())
@@ -379,6 +388,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			it.After(func() {
 				server.Close()
 			})
+
 			it("returns true", func() {
 				result, err := matcher.Match(actual)
 				Expect(err).To(MatchError(ContainSubstring("container has multiple port mappings, but none were specified. Please specify via the OnPort method")))
