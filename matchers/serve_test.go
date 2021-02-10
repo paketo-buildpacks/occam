@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/onsi/gomega/types"
 	"github.com/paketo-buildpacks/occam"
 	"github.com/paketo-buildpacks/occam/matchers"
 	"github.com/paketo-buildpacks/occam/matchers/fakes"
@@ -24,20 +23,23 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		matcher types.GomegaMatcher
+		matcher matchers.ServeMatcherInterface
 	)
 
 	it.Before(func() {
-		matcher = matchers.Serve("some string", "8080", "/endpoint")
+		matcher = matchers.Serve("some string")
 	})
 
-	context("Match", func() {
+	context("Match given port and endpoint", func() {
 		var (
 			actual interface{}
 			server *httptest.Server
 		)
+		it.Before(func() {
+			matcher.OnPort("8080").WithEndpoint("/endpoint")
+		})
 
-		context("when the http request succeeds and response contains substring", func() {
+		context("the http request succeeds and response contains substring", func() {
 			it.Before(func() {
 				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 					if req.Method == http.MethodHead {
@@ -234,8 +236,6 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 					actual = occam.Container{
 						Ports: map[string]string{
 							"3000": "1234",
-							"4000": "4321",
-							"5000": "5678",
 						},
 						Env: map[string]string{
 							"PORT": "8080",
@@ -292,6 +292,97 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 					Expect(err).To(HaveOccurred())
 					Expect(result).To(BeFalse())
 				})
+			})
+		})
+	})
+
+	context("Match given no port or endpoint", func() {
+		var (
+			actual interface{}
+			server *httptest.Server
+		)
+		context("there's only one container port mapping", func() {
+			it.Before(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					if req.Method == http.MethodHead {
+						http.Error(w, "NotFound", http.StatusNotFound)
+						return
+					}
+
+					switch req.URL.Path {
+					case "/":
+						w.WriteHeader(http.StatusOK)
+						fmt.Fprintln(w, "some string")
+					default:
+						fmt.Fprintln(w, "unknown path")
+						t.Fatal(fmt.Sprintf("unknown path: %s", req.URL.Path))
+					}
+				}))
+
+				serverURL, err := url.Parse(server.URL)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual = occam.Container{
+					Ports: map[string]string{
+						"8080": serverURL.Port(),
+					},
+					Env: map[string]string{
+						"PORT": "8080",
+					},
+				}
+			})
+
+			it.After(func() {
+				server.Close()
+			})
+			it("returns true", func() {
+				result, err := matcher.Match(actual)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(BeTrue())
+			})
+		})
+
+		context("there's multiple port mappings", func() {
+			it.Before(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					if req.Method == http.MethodHead {
+						http.Error(w, "NotFound", http.StatusNotFound)
+						return
+					}
+
+					switch req.URL.Path {
+					case "/":
+						w.WriteHeader(http.StatusOK)
+						fmt.Fprintln(w, "some string")
+					default:
+						fmt.Fprintln(w, "unknown path")
+						t.Fatal(fmt.Sprintf("unknown path: %s", req.URL.Path))
+					}
+				}))
+
+				serverURL, err := url.Parse(server.URL)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual = occam.Container{
+					Ports: map[string]string{
+						"8080": serverURL.Port(),
+						"3030": "3030",
+						"4030": "4030",
+						"5030": "5030",
+					},
+					Env: map[string]string{
+						"PORT": "8080",
+					},
+				}
+			})
+
+			it.After(func() {
+				server.Close()
+			})
+			it("returns true", func() {
+				result, err := matcher.Match(actual)
+				Expect(err).To(MatchError(ContainSubstring("container has multiple port mappings, but none were specified. Please specify via the OnPort method")))
+				Expect(result).To(BeFalse())
 			})
 		})
 	})
