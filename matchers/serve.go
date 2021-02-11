@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strconv"
-	"strings"
 
+	"github.com/onsi/gomega/types"
 	"github.com/paketo-buildpacks/occam"
 )
 
-func Serve(expectedResponse string) *ServeMatcher {
+func Serve(expected interface{}) *ServeMatcher {
 	return &ServeMatcher{
-		ExpectedResponse: expectedResponse,
-		Docker:           occam.NewDocker(),
-		ActualResponse:   "",
+		expected: expected,
+		docker:   occam.NewDocker(),
 	}
 }
 
 type ServeMatcher struct {
-	ExpectedResponse string
-	port             int
-	endpoint         string
-	Docker           occam.Docker
-	ActualResponse   string
+	expected interface{}
+	port     int
+	endpoint string
+	docker   occam.Docker
+	response string
 }
 
 func (sm *ServeMatcher) OnPort(port int) *ServeMatcher {
@@ -33,6 +33,11 @@ func (sm *ServeMatcher) OnPort(port int) *ServeMatcher {
 
 func (sm *ServeMatcher) WithEndpoint(endpoint string) *ServeMatcher {
 	sm.endpoint = endpoint
+	return sm
+}
+
+func (sm *ServeMatcher) WithDocker(docker occam.Docker) *ServeMatcher {
+	sm.docker = docker
 	return sm
 }
 
@@ -56,7 +61,7 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 	}
 
 	if _, ok := container.Ports[port]; !ok {
-		// EITHER: you have multiple ports, didn't specify OR you specified a bad port
+		// EITHER: you have multiple ports and didn't specify OR you specified a bad port
 		return false, fmt.Errorf("ServeMatcher looking for response from container port %s which is not in container port map", port)
 	}
 
@@ -73,13 +78,31 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 			return false, err
 		}
 
-		sm.ActualResponse = string(content)
+		sm.response = string(content)
 
-		if response.StatusCode == http.StatusOK && strings.Contains(string(content), sm.ExpectedResponse) {
-			return true, nil
+		if response.StatusCode == http.StatusOK {
+			match, err := sm.compare(string(content), sm.expected)
+			if err != nil {
+				return false, err
+			}
+
+			return match, nil
 		}
 	}
 	return false, nil
+}
+
+func (sm *ServeMatcher) compare(actual string, expected interface{}) (bool, error) {
+	if m, ok := expected.(types.GomegaMatcher); ok {
+		match, err := m.Match(actual)
+		if err != nil {
+			return false, err
+		}
+
+		return match, nil
+	}
+
+	return reflect.DeepEqual(actual, expected), nil
 }
 
 func (sm *ServeMatcher) FailureMessage(actual interface{}) (message string) {
@@ -87,11 +110,11 @@ func (sm *ServeMatcher) FailureMessage(actual interface{}) (message string) {
 
 	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nto contain:\n\n\t%s",
 		container.ID,
-		sm.ActualResponse,
-		sm.ExpectedResponse,
+		sm.response,
+		sm.expected,
 	)
 
-	if logs, _ := sm.Docker.Container.Logs.Execute(container.ID); logs != nil {
+	if logs, _ := sm.docker.Container.Logs.Execute(container.ID); logs != nil {
 		message = fmt.Sprintf("%s\n\nContainer logs:\n\n%s", message, logs)
 	}
 
@@ -103,11 +126,11 @@ func (sm *ServeMatcher) NegatedFailureMessage(actual interface{}) (message strin
 
 	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nnot to contain:\n\n\t%s",
 		container.ID,
-		sm.ActualResponse,
-		sm.ExpectedResponse,
+		sm.response,
+		sm.expected,
 	)
 
-	if logs, _ := sm.Docker.Container.Logs.Execute(container.ID); logs != nil {
+	if logs, _ := sm.docker.Container.Logs.Execute(container.ID); logs != nil {
 		message = fmt.Sprintf("%s\n\nContainer logs:\n\n%s", message, logs)
 	}
 
