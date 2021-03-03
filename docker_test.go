@@ -441,6 +441,27 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
+			context("when given optionial volume setting", func() {
+				it("sets the volume flag on the run command", func() {
+					container, err := docker.Container.Run.
+						WithVolume("/tmp/host-source:/tmp/dir-on-container:rw").
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detect",
+						"--volume", "/tmp/host-source:/tmp/dir-on-container:rw",
+						"some-image-id",
+					}))
+				})
+			})
+
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
