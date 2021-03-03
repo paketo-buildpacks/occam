@@ -455,7 +455,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					Expect(executeArgs).To(HaveLen(2))
 					Expect(executeArgs[0]).To(Equal([]string{
 						"container", "run",
-						"--detect",
+						"--detach",
 						"--volume", "/tmp/host-source:/tmp/dir-on-container:rw",
 						"some-image-id",
 					}))
