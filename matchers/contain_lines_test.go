@@ -277,7 +277,7 @@ func testContainLines(t *testing.T, context spec.G, it spec.S) {
 				"fourth-line",
 				"fifth-line",
 			}, "\n"))
-			Expect(message).To(ContainSubstring(strings.TrimSpace(`
+			Expect(message).To(MatchRegexp(strings.TrimSpace(`
 Expected
     <string>: 
     zeroth-line
@@ -287,30 +287,30 @@ Expected
     fourth-line
     fifth-line
 to contain lines
-    <[]interface {} | len:4, cap:4>: [
-        "some-line-content",
-        {
-            Regexp: "some\\-.+\\-content",
+    <\[\]interface {} \| len:4, cap:4>: \[
+        <string>"some\-line\-content",
+        <\*matchers.MatchRegexpMatcher \| \S+>{
+            Regexp: "some\\\\\-.+\\-content",
             Args: nil,
         },
-        {Prefix: "third", Args: nil},
-        {
-            Substr: "other-line-con",
+        <\*matchers.HavePrefixMatcher \| \S+>{Prefix: "third", Args: nil},
+        <\*matchers.ContainSubstringMatcher \| \S+>{
+            Substr: "other\-line\-con",
             Args: nil,
         },
-    ]
+    \]
 but missing
-    <[]interface {} | len:3, cap:4>: [
-        "some-line-content",
-        {
-            Regexp: "some\\-.+\\-content",
+    <\[\]interface {} \| len:3, cap:4>: \[
+        <string>"some\-line\-content",
+        <\*matchers.MatchRegexpMatcher \| \S+>{
+            Regexp: "some\\\\\-.+\\-content",
             Args: nil,
         },
-        {
-            Substr: "other-line-con",
+        <\*matchers.ContainSubstringMatcher \| \S+>{
+            Substr: "other\-line\-con",
             Args: nil,
         },
-    ]
+    \]
 `)))
 		})
 
@@ -324,30 +324,7 @@ but missing
 					"other-line-content",
 					"fifth-line",
 				}, "\n"))
-				Expect(message).To(ContainSubstring(strings.TrimSpace(`
-Expected
-    <string>: 
-    zeroth-line
-    some-stuff-content
-    some-line-content
-    third-line
-    other-line-content
-    fifth-line
-to contain lines
-    <[]interface {} | len:4, cap:4>: [
-        "some-line-content",
-        {
-            Regexp: "some\\-.+\\-content",
-            Args: nil,
-        },
-        {Prefix: "third", Args: nil},
-        {
-            Substr: "other-line-con",
-            Args: nil,
-        },
-    ]
-all lines appear, but may be misordered
-`)))
+				Expect(message).To(ContainSubstring(strings.TrimSpace(`all lines appear, but may be misordered`)))
 			})
 		})
 	})
@@ -371,7 +348,7 @@ all lines appear, but may be misordered
 				"fourth-line",
 				"fifth-line",
 			}, "\n"))
-			Expect(message).To(ContainSubstring(strings.TrimSpace(`
+			Expect(message).To(MatchRegexp(strings.TrimSpace(`
 Expected
     <string>: 
     zeroth-line
@@ -381,22 +358,22 @@ Expected
     fourth-line
     fifth-line
 not to contain lines
-    <[]interface {} | len:4, cap:4>: [
-        "some-line-content",
-        {
-            Regexp: "some\\-.+\\-content",
+    <\[\]interface {} \| len:4, cap:4>: \[
+        <string>"some\-line\-content",
+        <\*matchers.MatchRegexpMatcher \| \S+>{
+            Regexp: "some\\\\\-.+\\-content",
             Args: nil,
         },
-        {Prefix: "third", Args: nil},
-        {
-            Substr: "other-line-con",
+        <\*matchers.HavePrefixMatcher \| \S+>{Prefix: "third", Args: nil},
+        <\*matchers.ContainSubstringMatcher \| \S+>{
+            Substr: "other\-line\-con",
             Args: nil,
         },
-    ]
+    \]
 but includes
-    <[]interface {} | len:1, cap:1>: [
-        {Prefix: "third", Args: nil},
-    ]
+    <\[\]interface {} \| len:1, cap:1>: \[
+        <\*matchers.HavePrefixMatcher \| \S+>{Prefix: "third", Args: nil},
+    \]
 `)))
 		})
 	})
