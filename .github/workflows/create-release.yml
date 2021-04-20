@@ -34,7 +34,7 @@ jobs:
     - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Tag
       id: tag
-      uses: paketo-buildpacks/github-config/actions/tag@main
+      uses: paketo-buildpacks/github-config/actions/tag/increment-tag@main
     - name: Create Draft Release
       uses: paketo-buildpacks/github-config/actions/release/create@main
       with:
