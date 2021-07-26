@@ -24,17 +24,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit
     steps:
+    - name: Setup Go
+      uses: actions/setup-go@v2.1.3
+      with:
+        go-version: 1.16.x
+    - name: Checkout
+      uses: actions/checkout@v2
+    - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
     - name: Reset Draft Release
+      id: reset
       uses: paketo-buildpacks/github-config/actions/release/reset-draft@main
       with:
         repo: ${{ github.repository }}
         token: ${{ github.token }}
-    - name: Checkout
-      uses: actions/checkout@v2
-    - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Tag
       id: tag
       uses: paketo-buildpacks/github-config/actions/tag/increment-tag@main
+      with:
+        current_version: ${{ steps.reset.outputs.current_version }}
     - name: Create Draft Release
       uses: paketo-buildpacks/github-config/actions/release/create@main
       with:
