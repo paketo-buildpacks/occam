@@ -8,7 +8,7 @@ import (
 
 type DockerImageInspectClient struct {
 	ExecuteCall struct {
-		sync.Mutex
+		mutex     sync.Mutex
 		CallCount int
 		Receives  struct {
 			Ref string
@@ -22,8 +22,8 @@ type DockerImageInspectClient struct {
 }
 
 func (f *DockerImageInspectClient) Execute(param1 string) (occam.Image, error) {
-	f.ExecuteCall.Lock()
-	defer f.ExecuteCall.Unlock()
+	f.ExecuteCall.mutex.Lock()
+	defer f.ExecuteCall.mutex.Unlock()
 	f.ExecuteCall.CallCount++
 	f.ExecuteCall.Receives.Ref = param1
 	if f.ExecuteCall.Stub != nil {
