@@ -9,6 +9,7 @@ import (
 
 	"github.com/ForestEckhardt/freezer"
 	"github.com/ForestEckhardt/freezer/github"
+	"github.com/paketo-buildpacks/occam/packagers"
 )
 
 //go:generate faux --interface LocalFetcher --output fakes/local_fetcher.go
@@ -40,7 +41,7 @@ func NewBuildpackStore() BuildpackStore {
 	gitToken := os.Getenv("GIT_TOKEN")
 	cacheManager := freezer.NewCacheManager(filepath.Join(os.Getenv("HOME"), ".freezer-cache"))
 	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", gitToken))
-	packager := freezer.NewPackingTools()
+	packager := packagers.NewJam()
 	fileSystem := freezer.NewFileSystem(ioutil.TempDir)
 	namer := freezer.NewNameGenerator()
 

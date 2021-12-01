@@ -12,6 +12,10 @@ type Executable interface {
 	Execute(pexec.Execution) error
 }
 
+// jam is a packager that builds packit buildpacks' source code into tarballs.
+// This type wraps the jam executable, and implements the freezer.Packager
+// interface, and can therefore be passed as an argument to
+// occam.BuildpackStore.WithPackager().
 type Jam struct {
 	executable Executable
 }

@@ -6,6 +6,10 @@ import (
 	"github.com/paketo-buildpacks/packit/pexec"
 )
 
+// create-package is a packager that builds libpak buildpacks' source code
+// into tarballs. This type wraps that packaging tool. Libpak implements the
+// freezer.Packager interface, and can therefore be passed as an argument to
+// occam.BuildpackStore.WithPackager().
 type Libpak struct {
 	executable Executable
 }
