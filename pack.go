@@ -65,6 +65,7 @@ type PackBuild struct {
 	env          map[string]string
 	trustBuilder bool
 	pullPolicy   string
+	volumes      []string
 
 	// TODO: remove after deprecation period
 	noPull bool
@@ -108,6 +109,11 @@ func (pb PackBuild) WithPullPolicy(pullPolicy string) PackBuild {
 
 func (pb PackBuild) WithTrustBuilder() PackBuild {
 	pb.trustBuilder = true
+	return pb
+}
+
+func (pb PackBuild) WithVolumes(volumes ...string) PackBuild {
+	pb.volumes = append(pb.volumes, volumes...)
 	return pb
 }
 
@@ -163,6 +169,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 
 	if pb.trustBuilder {
 		args = append(args, "--trust-builder")
+	}
+
+	for _, volume := range pb.volumes {
+		args = append(args, "--volume", volume)
 	}
 
 	buildLogBuffer := bytes.NewBuffer(nil)

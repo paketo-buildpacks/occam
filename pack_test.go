@@ -255,7 +255,31 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--trust-builder",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+		})
 
+		context("when given optional volumes", func() {
+			it("includes the --volume option and args on all commands", func() {
+				image, logs, err := pack.Build.
+					WithVolumes(
+						"/tmp/host-source:/tmp/dir-on-image:rw",
+						"/tmp/second-host-source:/tmp/second-dir-on-image:ro",
+					).
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--volume", "/tmp/host-source:/tmp/dir-on-image:rw",
+					"--volume", "/tmp/second-host-source:/tmp/second-dir-on-image:ro",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
 		})
 
