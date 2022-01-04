@@ -113,7 +113,7 @@ type DockerContainerRun struct {
 	entrypoint   string
 	publishPorts []string
 	publishAll   bool
-	volume       string
+	volumes      []string
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -151,8 +151,14 @@ func (r DockerContainerRun) WithPublishAll() DockerContainerRun {
 	return r
 }
 
+// Deprecated: Use WithVolumes(...volumes) instead.
 func (r DockerContainerRun) WithVolume(volume string) DockerContainerRun {
-	r.volume = volume
+	r.volumes = append(r.volumes, volume)
+	return r
+}
+
+func (r DockerContainerRun) WithVolumes(volumes ...string) DockerContainerRun {
+	r.volumes = append(r.volumes, volumes...)
 	return r
 }
 
@@ -194,8 +200,8 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 		args = append(args, "--entrypoint", r.entrypoint)
 	}
 
-	if r.volume != "" {
-		args = append(args, "--volume", r.volume)
+	for _, volume := range r.volumes {
+		args = append(args, "--volume", volume)
 	}
 
 	args = append(args, imageID)
