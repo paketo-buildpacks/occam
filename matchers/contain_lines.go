@@ -10,6 +10,10 @@ import (
 	"github.com/onsi/gomega/types"
 )
 
+// ContainLines matches if all of the 'expected' matchers match with lines
+// (i.e. newline-delimited substrings) in the 'actual' string or fmt.Stringer.
+// Matching lines must appear in the order that the 'expected' matchers are
+// passed.
 func ContainLines(expected ...interface{}) types.GomegaMatcher {
 	return &containLinesMatcher{
 		expected: expected,

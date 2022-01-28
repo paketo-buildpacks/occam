@@ -8,6 +8,8 @@ import (
 	"github.com/paketo-buildpacks/occam"
 )
 
+// BeAvailable matches if the actual occam.Container is running AND an
+// HTTP request to at least one of its exposed ports completes without error.
 func BeAvailable() types.GomegaMatcher {
 	return &BeAvailableMatcher{
 		Docker: occam.NewDocker(),
