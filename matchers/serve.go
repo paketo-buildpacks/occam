@@ -11,6 +11,9 @@ import (
 	"github.com/paketo-buildpacks/occam"
 )
 
+// Serve matches if the actual occam.Container is running AND the
+// response from an HTTP request to the container's exposed port
+// matches the 'expected' matcher passed as an argument.
 func Serve(expected interface{}) *ServeMatcher {
 	return &ServeMatcher{
 		expected: expected,
@@ -26,16 +29,22 @@ type ServeMatcher struct {
 	response string
 }
 
+// OnPort sets the container port that is expected to be exposed.
 func (sm *ServeMatcher) OnPort(port int) *ServeMatcher {
 	sm.port = port
 	return sm
 }
 
+// WithEndpoint sets the endpoint or subdirectory where the expected content
+// should be available. For example, WithEndpoint("/health") will attempt to
+// access the server's /health endpoint.
 func (sm *ServeMatcher) WithEndpoint(endpoint string) *ServeMatcher {
 	sm.endpoint = endpoint
 	return sm
 }
 
+// WithDocker sets the occam.Docker that the matcher will use to access
+// the 'actual' container's metadata.
 func (sm *ServeMatcher) WithDocker(docker occam.Docker) *ServeMatcher {
 	sm.docker = docker
 	return sm
