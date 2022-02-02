@@ -74,7 +74,7 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 		return false, fmt.Errorf("ServeMatcher looking for response from container port %s which is not in container port map", port)
 	}
 
-	response, err := http.Get(fmt.Sprintf("http://localhost:%s%s", container.HostPort(port), sm.endpoint))
+	response, err := http.Get(fmt.Sprintf("http://%s:%s%s", container.Host(), container.HostPort(port), sm.endpoint))
 
 	if err != nil {
 		return false, err

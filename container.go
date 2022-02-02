@@ -2,6 +2,8 @@ package occam
 
 import (
 	"encoding/json"
+	"net/url"
+	"os"
 	"strings"
 )
 
@@ -53,4 +55,18 @@ func NewContainerFromInspectOutput(output []byte) (Container, error) {
 
 func (c Container) HostPort(value string) string {
 	return c.Ports[value]
+}
+
+func (c Container) Host() string {
+	val, ok := os.LookupEnv("DOCKER_HOST")
+	if !ok || strings.HasPrefix(val, "unix://") {
+		return "localhost"
+	}
+
+	url, err := url.Parse(val)
+	if err != nil {
+		return "localhost"
+	}
+
+	return url.Hostname()
 }
