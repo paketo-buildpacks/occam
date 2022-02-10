@@ -239,6 +239,25 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("when given optional sbom-output-dir", func() {
+			it("returns an image with the given name and the build logs", func() {
+				image, logs, err := pack.Build.WithSBOMOutputDir("some-dir").Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--sbom-output-dir", "some-dir",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+		})
+
 		context("when given optional trust-builder", func() {
 			it("returns an image with the given name and the build logs", func() {
 				image, logs, err := pack.Build.WithTrustBuilder().Execute("myapp", "/some/app/path")
