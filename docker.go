@@ -26,6 +26,8 @@ type Docker struct {
 	Volume struct {
 		Remove DockerVolumeRemove
 	}
+
+	Pull DockerPull
 }
 
 func NewDocker() Docker {
@@ -47,6 +49,8 @@ func NewDocker() Docker {
 
 	docker.Volume.Remove = DockerVolumeRemove{executable: executable}
 
+	docker.Pull = DockerPull{executable: executable}
+
 	return docker
 }
 
@@ -62,6 +66,8 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Container.Stop.executable = executable
 
 	d.Volume.Remove.executable = executable
+
+	d.Pull.executable = executable
 
 	return d
 }
@@ -316,6 +322,24 @@ func (r DockerVolumeRemove) Execute(volumes []string) error {
 	})
 	if err != nil {
 		return fmt.Errorf("failed to remove docker volume: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+type DockerPull struct {
+	executable Executable
+}
+
+func (p DockerPull) Execute(image string) error {
+
+	stderr := bytes.NewBuffer(nil)
+	err := p.executable.Execute(pexec.Execution{
+		Args:   []string{"pull", image},
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to pull docker image: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
 	return nil
