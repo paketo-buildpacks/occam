@@ -723,4 +723,32 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 	})
+
+	context("Pull", func() {
+		it("will pull the given image", func() {
+			err := docker.Pull.Execute("some-image")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+				"pull", "some-image",
+			}))
+		})
+
+		context("failure cases", func() {
+			context("when the pull command fails", func() {
+				it.Before(func() {
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						fmt.Fprintln(execution.Stderr, "Error: failed to pull image")
+						return errors.New("exit status 1")
+					}
+				})
+
+				it("returns an error", func() {
+					err := docker.Pull.Execute("some-image")
+					Expect(err).To(MatchError("failed to pull docker image: exit status 1: Error: failed to pull image"))
+				})
+			})
+
+		})
+	})
 }
