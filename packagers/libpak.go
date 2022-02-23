@@ -3,7 +3,7 @@ package packagers
 import (
 	"os"
 
-	"github.com/paketo-buildpacks/packit/pexec"
+	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
 
 // create-package is a packager that builds libpak buildpacks' source code

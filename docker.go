@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/paketo-buildpacks/packit/pexec"
+	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
 
 type Docker struct {
