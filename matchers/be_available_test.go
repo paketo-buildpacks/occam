@@ -12,7 +12,7 @@ import (
 	"github.com/paketo-buildpacks/occam"
 	"github.com/paketo-buildpacks/occam/matchers"
 	"github.com/paketo-buildpacks/occam/matchers/fakes"
-	"github.com/paketo-buildpacks/packit/pexec"
+	"github.com/paketo-buildpacks/packit/v2/pexec"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
