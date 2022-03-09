@@ -306,6 +306,24 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("when given optional printPackCmd", func() {
+			it("does not break image build", func() {
+				executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+					return nil
+				}
+
+				image, _, err := pack.Build.
+					WithPrintPackCmd().
+					WithBuilder("builder-name").
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+			})
+		})
+
 		context("failure cases", func() {
 			context("when the executable fails", func() {
 				it.Before(func() {

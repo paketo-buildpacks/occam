@@ -3,14 +3,15 @@ package occam
 import (
 	"bytes"
 	"fmt"
-	"sort"
-
 	"github.com/paketo-buildpacks/packit/pexec"
+	"sort"
+	"strings"
 )
 
 //go:generate faux --interface Executable --output fakes/executable.go
 type Executable interface {
 	Execute(pexec.Execution) error
+	Name() string
 }
 
 //go:generate faux --interface DockerImageInspectClient --output fakes/docker_image_inspect_client.go
@@ -67,6 +68,7 @@ type PackBuild struct {
 	pullPolicy   string
 	volumes      []string
 	gid          string
+	printPackCmd bool
 
 	// TODO: remove after deprecation period
 	noPull bool
@@ -120,6 +122,11 @@ func (pb PackBuild) WithVolumes(volumes ...string) PackBuild {
 
 func (pb PackBuild) WithGID(gid string) PackBuild {
 	pb.gid = gid
+	return pb
+}
+
+func (pb PackBuild) WithPrintPackCmd() PackBuild {
+	pb.printPackCmd = true
 	return pb
 }
 
@@ -185,6 +192,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 		args = append(args, "--gid", pb.gid)
 	}
 
+	if pb.printPackCmd {
+		printPackCmd(pb.executable.Name(), args)
+	}
+
 	buildLogBuffer := bytes.NewBuffer(nil)
 	err := pb.executable.Execute(pexec.Execution{
 		Args:   args,
@@ -201,4 +212,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 	}
 
 	return image, buildLogBuffer, nil
+}
+
+func printPackCmd(executableName string, args []string) {
+	fmt.Printf(`Running command "%s %s"\n`,
+		executableName,
+		strings.Join(args, " "))
 }

@@ -18,6 +18,14 @@ type Executable struct {
 		}
 		Stub func(pexec.Execution) error
 	}
+	NameCall struct {
+		mutex     sync.Mutex
+		CallCount int
+		Returns   struct {
+			String string
+		}
+		Stub func() string
+	}
 }
 
 func (f *Executable) Execute(param1 pexec.Execution) error {
@@ -29,4 +37,13 @@ func (f *Executable) Execute(param1 pexec.Execution) error {
 		return f.ExecuteCall.Stub(param1)
 	}
 	return f.ExecuteCall.Returns.Error
+}
+func (f *Executable) Name() string {
+	f.NameCall.mutex.Lock()
+	defer f.NameCall.mutex.Unlock()
+	f.NameCall.CallCount++
+	if f.NameCall.Stub != nil {
+		return f.NameCall.Stub()
+	}
+	return f.NameCall.Returns.String
 }
