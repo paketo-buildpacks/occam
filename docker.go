@@ -113,12 +113,13 @@ type DockerContainerRun struct {
 	inspect    DockerContainerInspect
 
 	command      string
+	entrypoint   string
 	env          map[string]string
 	memory       string
-	tty          bool
-	entrypoint   string
-	publishPorts []string
+	network      string
 	publishAll   bool
+	publishPorts []string
+	tty          bool
 	volumes      []string
 }
 
@@ -168,6 +169,11 @@ func (r DockerContainerRun) WithVolumes(volumes ...string) DockerContainerRun {
 	return r
 }
 
+func (r DockerContainerRun) WithNetwork(network string) DockerContainerRun {
+	r.network = network
+	return r
+}
+
 func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 	args := []string{"container", "run", "--detach"}
 
@@ -204,6 +210,10 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 
 	if r.entrypoint != "" {
 		args = append(args, "--entrypoint", r.entrypoint)
+	}
+
+	if r.network != "" {
+		args = append(args, "--network", r.network)
 	}
 
 	for _, volume := range r.volumes {
