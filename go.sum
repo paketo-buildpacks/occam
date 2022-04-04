@@ -61,8 +61,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/toml v1.0.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/CycloneDX/cyclonedx-go v0.4.0/go.mod h1:rmRcf//gT7PIzovatusbWi377xqCg1FS4jyST0GH20E=
-github.com/ForestEckhardt/freezer v0.0.10 h1:CQbYPeA/KxXMZhNeRd3Mk7IYV9uw7w9OkmW4alHqIFw=
-github.com/ForestEckhardt/freezer v0.0.10/go.mod h1:GHguI9kaXxL6on564JrxYs25dWuMqbqTYQVtvnkH4os=
+github.com/ForestEckhardt/freezer v0.0.11 h1:lrhHwQDsB62EWXyf2asWwGyk6DqT1jRq1Z0cDVffWvk=
+github.com/ForestEckhardt/freezer v0.0.11/go.mod h1:GHguI9kaXxL6on564JrxYs25dWuMqbqTYQVtvnkH4os=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
