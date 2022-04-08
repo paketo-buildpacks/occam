@@ -2,7 +2,7 @@ package matchers
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -82,7 +82,7 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 
 	if response != nil {
 		defer response.Body.Close()
-		content, err := ioutil.ReadAll(response.Body)
+		content, err := io.ReadAll(response.Body)
 		if err != nil {
 			return false, err
 		}

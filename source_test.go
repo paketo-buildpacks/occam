@@ -1,7 +1,6 @@
 package occam_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,10 +21,10 @@ func testSource(t *testing.T, context spec.G, it spec.S) {
 
 	it.Before(func() {
 		var err error
-		source, err = ioutil.TempDir("", "source")
+		source, err = os.MkdirTemp("", "source")
 		Expect(err).NotTo(HaveOccurred())
 
-		err = ioutil.WriteFile(filepath.Join(source, "some-file"), []byte("some-content"), 0644)
+		err = os.WriteFile(filepath.Join(source, "some-file"), []byte("some-content"), 0644)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -40,11 +39,11 @@ func testSource(t *testing.T, context spec.G, it spec.S) {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(destination).To(BeADirectory())
 
-		content, err := ioutil.ReadFile(filepath.Join(destination, "some-file"))
+		content, err := os.ReadFile(filepath.Join(destination, "some-file"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(content)).To(Equal("some-content"))
 
-		content, err = ioutil.ReadFile(filepath.Join(destination, ".occam-key"))
+		content, err = os.ReadFile(filepath.Join(destination, ".occam-key"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(content).To(HaveLen(32))
 	})

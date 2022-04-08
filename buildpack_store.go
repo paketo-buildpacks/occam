@@ -2,7 +2,6 @@ package occam
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,7 +41,7 @@ func NewBuildpackStore() BuildpackStore {
 	cacheManager := freezer.NewCacheManager(filepath.Join(os.Getenv("HOME"), ".freezer-cache"))
 	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", gitToken))
 	packager := packagers.NewJam()
-	fileSystem := freezer.NewFileSystem(ioutil.TempDir)
+	fileSystem := freezer.NewFileSystem(os.MkdirTemp)
 	namer := freezer.NewNameGenerator()
 
 	return BuildpackStore{
