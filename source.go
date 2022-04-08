@@ -2,14 +2,14 @@ package occam
 
 import (
 	"crypto/rand"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/paketo-buildpacks/packit/v2/fs"
 )
 
 func Source(path string) (string, error) {
-	destination, err := ioutil.TempDir("", "source")
+	destination, err := os.MkdirTemp("", "source")
 	if err != nil {
 		return "", err
 	}
@@ -25,7 +25,7 @@ func Source(path string) (string, error) {
 		return "", err
 	}
 
-	err = ioutil.WriteFile(filepath.Join(destination, ".occam-key"), content, 0644)
+	err = os.WriteFile(filepath.Join(destination, ".occam-key"), content, 0644)
 	if err != nil {
 		return "", err
 	}
