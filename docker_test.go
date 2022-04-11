@@ -586,6 +586,11 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 								]
 							},
 							"NetworkSettings": {
+							  "Networks": {
+                  "bridge": {
+									  "IPAddress": "10.172.0.2"
+									}
+								},
 								"Ports": {
 									"8080/tcp": [
 										{
@@ -612,6 +617,9 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					},
 					Ports: map[string]string{
 						"8080": "12345",
+					},
+					IPAddresses: map[string]string{
+						"bridge": "10.172.0.2",
 					},
 				}))
 
