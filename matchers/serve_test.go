@@ -39,6 +39,9 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			case "/":
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprint(w, "some string")
+			case "/redirect":
+				w.Header()["Location"] = []string{"/"}
+				w.WriteHeader(http.StatusMovedPermanently)
 			case "/empty":
 				// do nothing
 			case "/teapot":
@@ -146,6 +149,38 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				})
 				Expect(err).To(MatchError(ContainSubstring("container has multiple port mappings, but none were specified. Please specify via the OnPort method")))
 				Expect(result).To(BeFalse())
+			})
+		})
+
+		context("when given a client", func() {
+			var (
+				redirectFunctionCalled bool
+			)
+
+			it.Before(func() {
+				redirectFunctionCalled = false
+
+				client := &http.Client{
+					CheckRedirect: func(req *http.Request, via []*http.Request) error {
+						redirectFunctionCalled = true
+						return nil
+					},
+				}
+
+				matcher = matcher.WithClient(client)
+			})
+
+			it("uses the provided client", func() {
+				result, err := matcher.WithEndpoint("/redirect").Match(occam.Container{
+					Ports: map[string]string{
+						"8080": port,
+					},
+					Env: map[string]string{"PORT": "8080"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(BeTrue())
+
+				Expect(redirectFunctionCalled).To(BeTrue())
 			})
 		})
 
