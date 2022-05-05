@@ -8,7 +8,7 @@ go get github.com/paketo-buildpacks/occam
 
 ## Examples
 
-### Create a buildpack
+### Package a buildpack
 
 `occam` can be used to package a buildpack for use under test.
 
