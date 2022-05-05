@@ -1,4 +1,7 @@
-# `github.com/paketo-buildpacks/cccam`
+# `github.com/paketo-buildpacks/occam`
+
+[![GoDoc](https://img.shields.io/badge/pkg.go.dev-doc-blue)](http://pkg.go.dev/github.com/paketo-buildpacks/occam)
+
 `occam` is a Go library that provides an integration test framework that can be used to test Paketo Buildpacks
 
 ## Usage
@@ -37,12 +40,14 @@ docker := occam.NewDocker()
 ```
 
 Generate a random name for an image:
+
 ```go
 imageName, err := occam.RandomName()
 Expect(err).ToNot(HaveOccurred())
 ```
 
 Use the pack helper to build a container image:
+
 ```go
 var err error
 var buildLogs fmt.Stringer
@@ -62,6 +67,7 @@ Expect(err).ToNot(HaveOccurred())
 ```
 
 Use the docker helper to run the container image:
+
 ```go
 container, err = docker.Container.Run.
 	WithEnv(map[string]string{"PORT": "8080"}).
