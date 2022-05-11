@@ -5,7 +5,8 @@
 `occam` is a Go library that provides an integration test framework that can be used to test Paketo Buildpacks
 
 ## Usage
-```
+
+```bash
 go get github.com/paketo-buildpacks/occam
 ```
 
@@ -37,6 +38,7 @@ Initialize helpers:
 ```go
 pack := occam.NewPack().WithVerbose()
 docker := occam.NewDocker()
+containerStructureTest := NewContainerStructureTest()
 ```
 
 Generate a random name for an image:
