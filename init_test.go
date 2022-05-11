@@ -17,5 +17,6 @@ func TestUnitOccam(t *testing.T) {
 	suite("Source", testSource)
 	suite("BuildpackStore", testBuildpackStore)
 	suite("ContainerStructureTest", testContainerStructureTest)
+	suite("Venom", testVenom)
 	suite.Run(t)
 }
