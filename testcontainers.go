@@ -2,6 +2,7 @@ package occam
 
 import (
 	"context"
+	"time"
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -13,10 +14,11 @@ type TestContainers struct {
 	waitStrategy    wait.Strategy
 	containerMounts []testcontainers.ContainerMount
 	noStart         bool
+	startupTimeout  int
 }
 
 func NewTestContainers() TestContainers {
-	return TestContainers{}
+	return TestContainers{startupTimeout: 20}
 }
 
 func (r TestContainers) WithEnv(env map[string]string) TestContainers {
@@ -44,6 +46,11 @@ func (r TestContainers) WithNoStart() TestContainers {
 	return r
 }
 
+func (r TestContainers) WithTimeout(t int) TestContainers {
+	r.startupTimeout = t
+	return r
+}
+
 func (r TestContainers) Execute(imageID string) (testcontainers.Container, error) {
 	req := testcontainers.ContainerRequest{
 		Image:        imageID,
@@ -54,8 +61,10 @@ func (r TestContainers) Execute(imageID string) (testcontainers.Container, error
 
 		SkipReaper: true,
 	}
+	c, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(r.startupTimeout))
+	defer cancel()
 
-	return testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
+	return testcontainers.GenericContainer(c, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          !r.noStart,
 	})

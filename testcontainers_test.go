@@ -32,20 +32,11 @@ func testTestContainers(t *testing.T, context spec.G, it spec.S) {
 
 	context("TestContainers", func() {
 		it("should work", func() {
-			container, err = testContainer.Execute(testImage)
+			container, err = testContainer.WithWaitingFor(wait.ForAll(wait.ForLog("start worker process"), wait.ForListeningPort("80/tcp"))).
+				WithExposedPorts("80/tcp").
+				WithTimeout(10).
+				Execute(testImage)
 			Expect(err).NotTo(HaveOccurred())
-		})
-
-		context("WithWaitFor", func() {
-			it("should wait for log entry to occur", func() {
-				container, err = testContainer.WithWaitingFor(wait.ForLog("start worker processes")).Execute(testImage)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			it("should wait for application port", func() {
-				container, err = testContainer.WithExposedPorts("80/tcp").WithWaitingFor(wait.ForHTTP("/")).Execute(testImage)
-				Expect(err).NotTo(HaveOccurred())
-			})
 		})
 	})
 }
