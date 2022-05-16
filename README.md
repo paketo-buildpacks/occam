@@ -38,7 +38,6 @@ Initialize helpers:
 ```go
 pack := occam.NewPack().WithVerbose()
 docker := occam.NewDocker()
-containerStructureTest := NewContainerStructureTest()
 ```
 
 Generate a random name for an image:
@@ -85,7 +84,26 @@ Eventually(container, time.Second*30).
 	Should(Serve(ContainSubstring(`{"application_status":"UP"}`)).OnPort(8080))
 ```
 
+### Test a container image with container structure tests
+
+Initialize helpers:
+
+```go
+containerStructureTest := NewContainerStructureTest()
+```
+
+Call helper to verify the structure of the container
+
+```go
+_, err := containerStructureTest.Execute("test/my-image", "config.yaml")
+Expect(err).NotTo(HaveOccurred())
+
+```
+
+Refer to [https://github.com/GoogleContainerTools/container-structure-test](https://github.com/GoogleContainerTools/container-structure-test) for available tests (e.g. [command tests](https://github.com/GoogleContainerTools/container-structure-test#command-tests), [file existence tests](https://github.com/GoogleContainerTools/container-structure-test#file-existence-tests), ...)
+
 ## License
+
 This library is released under version 2.0 of the [Apache License][a].
 
 [a]: https://www.apache.org/licenses/LICENSE-2.0
