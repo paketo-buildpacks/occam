@@ -399,6 +399,30 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
+			context("when given optional command args", func() {
+				it("sets the command args on the run command", func() {
+					container, err := docker.Container.Run.
+						WithCommand("/some/command").
+						WithCommandArgs([]string{"arg1", "arg2"}).
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"some-image-id",
+						"/some/command",
+						"arg1",
+						"arg2",
+					}))
+				})
+			})
+
 			context("when given optional tty setting", func() {
 				it("sets the tty flag on the run command", func() {
 					container, err := docker.Container.Run.
