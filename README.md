@@ -103,6 +103,24 @@ Expect(err).NotTo(HaveOccurred())
 
 Refer to [https://github.com/GoogleContainerTools/container-structure-test](https://github.com/GoogleContainerTools/container-structure-test) for available tests (e.g. [command tests](https://github.com/GoogleContainerTools/container-structure-test#command-tests), [file existence tests](https://github.com/GoogleContainerTools/container-structure-test#file-existence-tests), ...)
 
+### Use venom to extent your integration test
+
+Initialize helpers:
+
+```go
+venom = occam.NewVenom()
+```
+
+Call helper to run a testsuite against a container
+
+```go
+_, err := venom.WithPort("8080").Execute("testsuite.yaml")
+Expect(err).NotTo(HaveOccurred())
+
+```
+
+Refer to [https://github.com/ovh/venom](https://github.com/ovh/venom) for details (e.g. [testsuites](https://github.com/ovh/venom#testsuites), [executors](https://github.com/ovh/venom#executors), ...)
+
 ## License
 
 This library is released under version 2.0 of the [Apache License][a].
