@@ -69,8 +69,13 @@ func testVenom(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		context("WithVars", func() {
-			it("should add 2 variables", func() {
-				_, err := venom.WithVar("key1", "value1").WithVar("key2", "value2").Execute("test.yaml")
+			it("it should preserve order of provided vars", func() {
+				_, err := venom.WithVar("key1", "value1").
+					WithVar("key2", "value2").
+					WithVar("key2", "value2").
+					WithVar("key3", "value3").
+					WithVar("key4", "value4").
+					Execute("test.yaml")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
@@ -79,6 +84,10 @@ func testVenom(t *testing.T, context spec.G, it spec.S) {
 					"key1=value1",
 					"--var",
 					"key2=value2",
+					"--var",
+					"key3=value3",
+					"--var",
+					"key4=value4",
 					"test.yaml",
 				}))
 			})
