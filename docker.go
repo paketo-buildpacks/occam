@@ -113,6 +113,7 @@ type DockerContainerRun struct {
 	inspect    DockerContainerInspect
 
 	command      string
+	commandArgs  []string
 	entrypoint   string
 	env          map[string]string
 	memory       string
@@ -138,6 +139,10 @@ func (r DockerContainerRun) WithCommand(command string) DockerContainerRun {
 	return r
 }
 
+func (r DockerContainerRun) WithCommandArgs(commandArgs []string) DockerContainerRun {
+	r.commandArgs = commandArgs
+	return r
+}
 func (r DockerContainerRun) WithTTY() DockerContainerRun {
 	r.tty = true
 	return r
@@ -225,6 +230,7 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 	if r.command != "" {
 		args = append(args, r.command)
 	}
+	args = append(args, r.commandArgs...)
 
 	stdout := bytes.NewBuffer(nil)
 	stderr := bytes.NewBuffer(nil)
