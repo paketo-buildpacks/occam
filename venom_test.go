@@ -1,6 +1,7 @@
 package occam_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -42,6 +43,15 @@ func testVenom(t *testing.T, context spec.G, it spec.S) {
 			}))
 		})
 
+		it("should propagate an error", func() {
+			executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+				return errors.New("Test Error")
+			}
+
+			_, err := venom.Execute("test.yaml")
+			Expect(err).To(MatchError(ContainSubstring("Test Error")))
+		})
+
 		context("WithVerbose", func() {
 			it("should add -vv flag", func() {
 				_, err := venom.WithVerbose().Execute("test.yaml")
@@ -54,6 +64,7 @@ func testVenom(t *testing.T, context spec.G, it spec.S) {
 				}))
 			})
 		})
+
 		context("WithPort", func() {
 			it("should add port variable", func() {
 				_, err := venom.WithPort("8080").Execute("test.yaml")
@@ -91,6 +102,7 @@ func testVenom(t *testing.T, context spec.G, it spec.S) {
 					"test.yaml",
 				}))
 			})
+
 		})
 	})
 }
