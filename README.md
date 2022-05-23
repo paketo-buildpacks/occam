@@ -39,6 +39,7 @@ Initialize helpers:
 pack := occam.NewPack().WithVerbose()
 docker := occam.NewDocker()
 venom := occam.NewVenom()
+testContainers := occam.NewTestContainers()
 ```
 
 Generate a random name for an image:
