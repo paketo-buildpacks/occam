@@ -325,6 +325,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 							return nil
 						}
 					})
+
 					it("sets all of the published ports in the run command", func() {
 						container, err := docker.Container.Run.
 							WithPublish("3000").
@@ -445,6 +446,7 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					}))
 				})
 			})
+
 			context("when given optional tty setting", func() {
 				it("sets the tty flag on the run command", func() {
 					container, err := docker.Container.Run.
@@ -555,10 +557,10 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
-			context("when given optionial volume setting", func() {
-				it("sets the volume flag on the run command", func() {
+			context("when given optional read-only setting", func() {
+				it("sets the read-only flag on the run command", func() {
 					container, err := docker.Container.Run.
-						WithVolume("/tmp/host-source:/tmp/dir-on-container:rw").
+						WithReadOnly().
 						Execute("some-image-id")
 
 					Expect(err).NotTo(HaveOccurred())
@@ -570,7 +572,32 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					Expect(executeArgs[0]).To(Equal([]string{
 						"container", "run",
 						"--detach",
-						"--volume", "/tmp/host-source:/tmp/dir-on-container:rw",
+						"--read-only",
+						"some-image-id",
+					}))
+				})
+			})
+
+			context("when given optional mount setting", func() {
+				it("sets the mount flag on the run command", func() {
+					container, err := docker.Container.Run.
+						WithMounts(
+							"type=tmpfs,destination=/tmp",
+							"type=bind,source=/my-local,destination=/local",
+						).
+						Execute("some-image-id")
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(container).To(Equal(occam.Container{
+						ID: "some-container-id",
+					}))
+
+					Expect(executeArgs).To(HaveLen(2))
+					Expect(executeArgs[0]).To(Equal([]string{
+						"container", "run",
+						"--detach",
+						"--mount", "type=tmpfs,destination=/tmp",
+						"--mount", "type=bind,source=/my-local,destination=/local",
 						"some-image-id",
 					}))
 				})

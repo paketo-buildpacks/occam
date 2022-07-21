@@ -123,6 +123,8 @@ type DockerContainerRun struct {
 	publishPorts []string
 	tty          bool
 	volumes      []string
+	readOnly     bool
+	mounts       []string
 }
 
 func (r DockerContainerRun) WithEnv(env map[string]string) DockerContainerRun {
@@ -186,6 +188,16 @@ func (r DockerContainerRun) WithNetwork(network string) DockerContainerRun {
 	return r
 }
 
+func (r DockerContainerRun) WithReadOnly() DockerContainerRun {
+	r.readOnly = true
+	return r
+}
+
+func (r DockerContainerRun) WithMounts(mounts ...string) DockerContainerRun {
+	r.mounts = append(r.mounts, mounts...)
+	return r
+}
+
 func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 	args := []string{"container", "run", "--detach"}
 
@@ -230,6 +242,14 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 
 	for _, volume := range r.volumes {
 		args = append(args, "--volume", volume)
+	}
+
+	if r.readOnly {
+		args = append(args, "--read-only")
+	}
+
+	for _, mount := range r.mounts {
+		args = append(args, "--mount", mount)
 	}
 
 	args = append(args, imageID)
