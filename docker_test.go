@@ -620,6 +620,33 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("Restart", func() {
+			it("restarts a docker container with the given container id", func() {
+				err := docker.Container.Restart.Execute("some-container-id")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"container", "restart", "some-container-id",
+				}))
+			})
+
+			context("failure cases", func() {
+				context("when the executable fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							fmt.Fprintln(execution.Stderr, "Error: No such container: some-container-id")
+							return errors.New("exit status 1")
+						}
+					})
+
+					it("returns an error", func() {
+						err := docker.Container.Restart.Execute("some-container-id")
+						Expect(err).To(MatchError("failed to restart docker container: exit status 1: Error: No such container: some-container-id"))
+					})
+				})
+			})
+		})
+
 		context("Remove", func() {
 			it("removes a docker container with the given container id", func() {
 				err := docker.Container.Remove.Execute("some-container-id")

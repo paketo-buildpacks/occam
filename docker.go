@@ -18,8 +18,9 @@ type Docker struct {
 	Container struct {
 		Inspect DockerContainerInspect
 		Logs    DockerContainerLogs
-		Run     DockerContainerRun
 		Remove  DockerContainerRemove
+		Restart DockerContainerRestart
+		Run     DockerContainerRun
 		Stop    DockerContainerStop
 	}
 
@@ -45,6 +46,7 @@ func NewDocker() Docker {
 	}
 
 	docker.Container.Remove = DockerContainerRemove{executable: executable}
+	docker.Container.Restart = DockerContainerRestart{executable: executable}
 	docker.Container.Stop = DockerContainerStop{executable: executable}
 
 	docker.Volume.Remove = DockerVolumeRemove{executable: executable}
@@ -60,6 +62,7 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 
 	d.Container.Inspect.executable = executable
 	d.Container.Logs.executable = executable
+	d.Container.Restart.executable = executable
 	d.Container.Remove.executable = executable
 	d.Container.Run.executable = executable
 	d.Container.Run.inspect = d.Container.Inspect
@@ -275,6 +278,23 @@ func (r DockerContainerRun) Execute(imageID string) (Container, error) {
 	}
 
 	return r.inspect.Execute(strings.TrimSpace(stdout.String()))
+}
+
+type DockerContainerRestart struct {
+	executable Executable
+}
+
+func (r DockerContainerRestart) Execute(containerID string) error {
+	stderr := bytes.NewBuffer(nil)
+	err := r.executable.Execute(pexec.Execution{
+		Args:   []string{"container", "restart", containerID},
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to restart docker container: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
 }
 
 type DockerContainerRemove struct {
