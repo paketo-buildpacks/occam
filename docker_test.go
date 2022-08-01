@@ -824,11 +824,12 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		context("Copy", func() {
-			it("will execute 'docker cp SOURCE DEST'", func() {
+			it("will execute 'docker container cp SOURCE DEST'", func() {
 				err := docker.Container.Copy.Execute("source/path", "dest-container:/path")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"container",
 					"cp",
 					"source/path",
 					"dest-container:/path",
@@ -855,11 +856,12 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 		context("Exec", func() {
 			context("Execute", func() {
-				it("will execute 'docker exec CONTAINER CMD'", func() {
+				it("will execute 'docker container exec CONTAINER CMD'", func() {
 					err := docker.Container.Exec.Execute("abc123", "/bin/bash", "-c", "echo hi")
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+						"container",
 						"exec",
 						"abc123",
 						"/bin/bash",
@@ -887,11 +889,12 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			context("ExecuteBash", func() {
-				it("will execute 'docker exec CONTAINER /bin/bash -c CMD'", func() {
+				it("will execute 'docker container exec CONTAINER /bin/bash -c CMD'", func() {
 					err := docker.Container.Exec.ExecuteBash("abc123", "echo hi")
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+						"container",
 						"exec",
 						"abc123",
 						"/bin/bash",

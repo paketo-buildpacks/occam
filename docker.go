@@ -387,7 +387,7 @@ type DockerContainerCopy struct {
 func (docker DockerContainerCopy) Execute(source, dest string) error {
 	stderr := bytes.NewBuffer(nil)
 	err := docker.executable.Execute(pexec.Execution{
-		Args:   []string{"cp", source, dest},
+		Args:   []string{"container", "cp", source, dest},
 		Stderr: stderr,
 	})
 	if err != nil {
@@ -404,7 +404,7 @@ type DockerContainerExec struct {
 func (docker DockerContainerExec) Execute(container string, args ...string) error {
 	stderr := bytes.NewBuffer(nil)
 	execution := pexec.Execution{
-		Args:   []string{"exec", container},
+		Args:   []string{"container", "exec", container},
 		Stderr: stderr,
 	}
 	execution.Args = append(execution.Args, args...)
