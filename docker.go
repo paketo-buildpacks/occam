@@ -16,6 +16,8 @@ type Docker struct {
 	}
 
 	Container struct {
+		Copy    DockerContainerCopy
+		Exec    DockerContainerExec
 		Inspect DockerContainerInspect
 		Logs    DockerContainerLogs
 		Remove  DockerContainerRemove
@@ -29,8 +31,6 @@ type Docker struct {
 	}
 
 	Pull DockerPull
-	Copy DockerCopy
-	Exec DockerExec
 }
 
 func NewDocker() Docker {
@@ -40,6 +40,8 @@ func NewDocker() Docker {
 	docker.Image.Inspect = DockerImageInspect{executable: executable}
 	docker.Image.Remove = DockerImageRemove{executable: executable}
 
+	docker.Container.Copy = DockerContainerCopy{executable: executable}
+	docker.Container.Exec = DockerContainerExec{executable: executable}
 	docker.Container.Inspect = DockerContainerInspect{executable: executable}
 	docker.Container.Logs = DockerContainerLogs{executable: executable}
 	docker.Container.Run = DockerContainerRun{
@@ -54,8 +56,6 @@ func NewDocker() Docker {
 	docker.Volume.Remove = DockerVolumeRemove{executable: executable}
 
 	docker.Pull = DockerPull{executable: executable}
-	docker.Copy = DockerCopy{executable: executable}
-	docker.Exec = DockerExec{executable: executable}
 
 	return docker
 }
@@ -64,6 +64,8 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Image.Inspect.executable = executable
 	d.Image.Remove.executable = executable
 
+	d.Container.Copy.executable = executable
+	d.Container.Exec.executable = executable
 	d.Container.Inspect.executable = executable
 	d.Container.Logs.executable = executable
 	d.Container.Restart.executable = executable
@@ -75,8 +77,6 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Volume.Remove.executable = executable
 
 	d.Pull.executable = executable
-	d.Copy.executable = executable
-	d.Exec.executable = executable
 
 	return d
 }
@@ -380,6 +380,47 @@ func (s DockerContainerStop) Execute(containerID string) error {
 	return nil
 }
 
+type DockerContainerCopy struct {
+	executable Executable
+}
+
+func (docker DockerContainerCopy) Execute(source, dest string) error {
+	stderr := bytes.NewBuffer(nil)
+	err := docker.executable.Execute(pexec.Execution{
+		Args:   []string{"cp", source, dest},
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("'docker cp' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+type DockerContainerExec struct {
+	executable Executable
+}
+
+func (docker DockerContainerExec) Execute(container string, args ...string) error {
+	stderr := bytes.NewBuffer(nil)
+	execution := pexec.Execution{
+		Args:   []string{"exec", container},
+		Stderr: stderr,
+	}
+	execution.Args = append(execution.Args, args...)
+
+	err := docker.executable.Execute(execution)
+	if err != nil {
+		return fmt.Errorf("'docker exec' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+func (docker DockerContainerExec) ExecuteBash(container, script string) error {
+	return docker.Execute(container, "/bin/bash", "-c", script)
+}
+
 type DockerVolumeRemove struct {
 	executable Executable
 }
@@ -416,45 +457,4 @@ func (p DockerPull) Execute(image string) error {
 	}
 
 	return nil
-}
-
-type DockerCopy struct {
-	executable Executable
-}
-
-func (docker DockerCopy) Execute(source, dest string) error {
-	stderr := bytes.NewBuffer(nil)
-	err := docker.executable.Execute(pexec.Execution{
-		Args:   []string{"cp", source, dest},
-		Stderr: stderr,
-	})
-	if err != nil {
-		return fmt.Errorf("'docker cp' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
-	}
-
-	return nil
-}
-
-type DockerExec struct {
-	executable Executable
-}
-
-func (docker DockerExec) Execute(container string, args ...string) error {
-	stderr := bytes.NewBuffer(nil)
-	execution := pexec.Execution{
-		Args:   []string{"exec", container},
-		Stderr: stderr,
-	}
-	execution.Args = append(execution.Args, args...)
-
-	err := docker.executable.Execute(execution)
-	if err != nil {
-		return fmt.Errorf("'docker exec' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
-	}
-
-	return nil
-}
-
-func (docker DockerExec) ExecuteBash(container, script string) error {
-	return docker.Execute(container, "/bin/bash", "-c", script)
 }
