@@ -30,6 +30,7 @@ type Docker struct {
 
 	Pull DockerPull
 	Copy DockerCopy
+	Exec DockerExec
 }
 
 func NewDocker() Docker {
@@ -54,6 +55,7 @@ func NewDocker() Docker {
 
 	docker.Pull = DockerPull{executable: executable}
 	docker.Copy = DockerCopy{executable: executable}
+	docker.Exec = DockerExec{executable: executable}
 
 	return docker
 }
@@ -74,6 +76,7 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 
 	d.Pull.executable = executable
 	d.Copy.executable = executable
+	d.Exec.executable = executable
 
 	return d
 }
@@ -427,6 +430,26 @@ func (docker DockerCopy) Execute(source, dest string) error {
 	})
 	if err != nil {
 		return fmt.Errorf("'docker cp' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+type DockerExec struct {
+	executable Executable
+}
+
+func (docker DockerExec) Execute(container string, args ...string) error {
+	stderr := bytes.NewBuffer(nil)
+	execution := pexec.Execution{
+		Args:   []string{"exec", container},
+		Stderr: stderr,
+	}
+	execution.Args = append(execution.Args, args...)
+
+	err := docker.executable.Execute(execution)
+	if err != nil {
+		return fmt.Errorf("'docker exec' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
 	return nil

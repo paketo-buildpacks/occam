@@ -910,4 +910,36 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 	})
+
+	context("Exec", func() {
+		it("will execute 'docker exec CONTAINER CMD'", func() {
+			err := docker.Exec.Execute("abc123", "/bin/bash", "-c", "echo hi")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+				"exec",
+				"abc123",
+				"/bin/bash",
+				"-c",
+				"echo hi",
+			}))
+		})
+
+		context("failure cases", func() {
+			context("when the exec command fails", func() {
+				it.Before(func() {
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						_, err := fmt.Fprint(execution.Stderr, "error in exec command")
+						Expect(err).NotTo(HaveOccurred())
+						return errors.New("exit status 99")
+					}
+				})
+
+				it("returns an error", func() {
+					err := docker.Exec.Execute("container", "arg0", "arg1")
+					Expect(err).To(MatchError("'docker exec' failed: exit status 99: error in exec command"))
+				})
+			})
+		})
+	})
 }
