@@ -454,3 +454,7 @@ func (docker DockerExec) Execute(container string, args ...string) error {
 
 	return nil
 }
+
+func (docker DockerExec) ExecuteBash(container, script string) error {
+	return docker.Execute(container, "/bin/bash", "-c", script)
+}
