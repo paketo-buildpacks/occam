@@ -29,6 +29,7 @@ type Docker struct {
 	}
 
 	Pull DockerPull
+	Copy DockerCopy
 }
 
 func NewDocker() Docker {
@@ -52,6 +53,7 @@ func NewDocker() Docker {
 	docker.Volume.Remove = DockerVolumeRemove{executable: executable}
 
 	docker.Pull = DockerPull{executable: executable}
+	docker.Copy = DockerCopy{executable: executable}
 
 	return docker
 }
@@ -71,6 +73,7 @@ func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Volume.Remove.executable = executable
 
 	d.Pull.executable = executable
+	d.Copy.executable = executable
 
 	return d
 }
@@ -407,6 +410,23 @@ func (p DockerPull) Execute(image string) error {
 	})
 	if err != nil {
 		return fmt.Errorf("failed to pull docker image: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+type DockerCopy struct {
+	executable Executable
+}
+
+func (docker DockerCopy) Execute(source, dest string) error {
+	stderr := bytes.NewBuffer(nil)
+	err := docker.executable.Execute(pexec.Execution{
+		Args:   []string{"cp", source, dest},
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("'docker cp' failed: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
 	return nil
