@@ -880,4 +880,34 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 
 		})
 	})
+
+	context("Copy", func() {
+		it("will execute 'docker cp SOURCE DEST'", func() {
+			err := docker.Copy.Execute("source/path", "dest-container:/path")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+				"cp",
+				"source/path",
+				"dest-container:/path",
+			}))
+		})
+
+		context("failure cases", func() {
+			context("when the cp command fails", func() {
+				it.Before(func() {
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						_, err := fmt.Fprint(execution.Stderr, "must specify at least one container source")
+						Expect(err).NotTo(HaveOccurred())
+						return errors.New("exit status 1")
+					}
+				})
+
+				it("returns an error", func() {
+					err := docker.Copy.Execute("source", "dest")
+					Expect(err).To(MatchError("'docker cp' failed: exit status 1: must specify at least one container source"))
+				})
+			})
+		})
+	})
 }
