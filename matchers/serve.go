@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -81,7 +82,11 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 
 	if _, ok := container.Ports[port]; !ok {
 		// EITHER: you have multiple ports and didn't specify OR you specified a bad port
-		return false, fmt.Errorf("ServeMatcher looking for response from container port %s which is not in container port map", port)
+		message := fmt.Sprintf("ServeMatcher looking for response from container port %s which is not in container port map", port)
+		if logs, _ := sm.docker.Container.Logs.Execute(container.ID); logs != nil {
+			message = fmt.Sprintf("%s\n\nContainer logs:\n\n%s", message, logs)
+		}
+		return false, errors.New(message)
 	}
 
 	response, err := sm.client.Get(fmt.Sprintf("http://%s:%s%s", container.Host(), container.HostPort(port), sm.endpoint))

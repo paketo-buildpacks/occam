@@ -207,7 +207,15 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 		context("failure cases", func() {
 			context("the port is not in the container port mapping", func() {
 				it.Before(func() {
-					matcher = matcher.OnPort(8080)
+					executable := &fakes.Executable{}
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						fmt.Fprintln(execution.Stdout, "some logs")
+						return nil
+					}
+
+					docker := occam.NewDocker().WithExecutable(executable)
+
+					matcher = matchers.Serve("some string").WithDocker(docker).OnPort(8080)
 				})
 
 				it("returns an error", func() {
@@ -216,6 +224,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 						Env:   map[string]string{"PORT": "8080"},
 					})
 					Expect(err).To(MatchError(ContainSubstring("ServeMatcher looking for response from container port 8080 which is not in container port map")))
+					Expect(err).To(MatchError(ContainSubstring("Container logs:\n\nsome logs\n")))
 					Expect(result).To(BeFalse())
 				})
 			})
