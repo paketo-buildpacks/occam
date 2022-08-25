@@ -2,6 +2,7 @@ package occam
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -19,20 +20,29 @@ type DockerImageInspectClient interface {
 }
 
 type Pack struct {
-	Build PackBuild
+	Build   PackBuild
+	Builder PackBuilder
 }
 
 func NewPack() Pack {
+	executable := pexec.NewExecutable("pack")
+
 	return Pack{
 		Build: PackBuild{
-			executable:               pexec.NewExecutable("pack"),
+			executable:               executable,
 			dockerImageInspectClient: NewDocker().Image.Inspect,
+		},
+		Builder: PackBuilder{
+			Inspect: PackBuilderInspect{
+				executable: executable,
+			},
 		},
 	}
 }
 
 func (p Pack) WithExecutable(executable Executable) Pack {
 	p.Build.executable = executable
+	p.Builder.Inspect.executable = executable
 	return p
 }
 
@@ -211,4 +221,35 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 	}
 
 	return image, buildLogBuffer, nil
+}
+
+type PackBuilder struct {
+	Inspect PackBuilderInspect
+}
+
+type PackBuilderInspect struct {
+	executable Executable
+}
+
+func (pbi PackBuilderInspect) Execute(names ...string) (Builder, error) {
+	args := []string{"builder", "inspect"}
+	args = append(args, names...)
+	args = append(args, "--output", "json")
+
+	buffer := bytes.NewBuffer(nil)
+	err := pbi.executable.Execute(pexec.Execution{
+		Args:   args,
+		Stdout: buffer,
+	})
+	if err != nil {
+		return Builder{}, fmt.Errorf("failed to pack builder inspect: %w\n\nOutput:\n%s", err, buffer)
+	}
+
+	var builder Builder
+	err = json.NewDecoder(buffer).Decode(&builder)
+	if err != nil {
+		return Builder{}, fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	return builder, nil
 }

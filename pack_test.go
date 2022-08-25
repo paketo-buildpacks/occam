@@ -355,4 +355,372 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 	})
+
+	context("Builder", func() {
+		context("Inspect", func() {
+			context("when given no builder image name", func() {
+				it.Before(func() {
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						fmt.Fprintln(execution.Stdout, `{
+							"builder_name": "default-builder",
+							"trusted": true,
+							"default": true,
+							"local_info": {
+								"description": "some-builder-description",
+								"created_by": {
+									"name": "some-creator-name",
+									"version": "some-creator-version"
+								},
+								"stack": {
+									"id": "some-stack-id"
+								},
+								"lifecycle": {
+									"version": "some-lifecycle-version",
+									"buildpack_apis": {
+										"deprecated": [
+											"some-deprecated-api-version"
+										],
+										"supported": [
+											"some-api-version",
+											"other-api-version"
+										]
+									},
+									"platform_apis": {
+										"deprecated": [
+											"some-deprecated-api-version"
+										],
+										"supported": [
+											"some-api-version",
+											"other-api-version"
+										]
+									}
+								},
+								"run_images": [
+									{
+										"name": "some-run-image"
+									}
+								],
+								"buildpacks": [
+									{
+										"id": "some-buildpack-id",
+										"name": "some-buildpack-name",
+										"version": "some-buildpack-version",
+										"homepage": "some-buildpack-homepage"
+									},
+									{
+										"id": "other-buildpack-id",
+										"name": "other-buildpack-name",
+										"version": "other-buildpack-version",
+										"homepage": "other-buildpack-homepage"
+									}
+								],
+								"detection_order": [
+									{
+										"buildpacks": [
+											{
+												"id": "some-buildpack-id",
+												"version": "some-buildpack-version",
+												"buildpacks": [
+													{
+														"id": "other-buildpack-id",
+														"version": "other-buildpack-version",
+														"optional": true
+													}
+												]
+											}
+										]
+									}
+								]
+							},
+							"remote_info": {
+								"description": "some-builder-description",
+								"created_by": {
+									"name": "some-creator-name",
+									"version": "some-creator-version"
+								},
+								"stack": {
+									"id": "some-stack-id"
+								},
+								"lifecycle": {
+									"version": "some-lifecycle-version",
+									"buildpack_apis": {
+										"deprecated": [
+											"some-deprecated-api-version"
+										],
+										"supported": [
+											"some-api-version",
+											"other-api-version"
+										]
+									},
+									"platform_apis": {
+										"deprecated": [
+											"some-deprecated-api-version"
+										],
+										"supported": [
+											"some-api-version",
+											"other-api-version"
+										]
+									}
+								},
+								"run_images": [
+									{
+										"name": "some-run-image"
+									}
+								],
+								"buildpacks": [
+									{
+										"id": "some-buildpack-id",
+										"name": "some-buildpack-name",
+										"version": "some-buildpack-version",
+										"homepage": "some-buildpack-homepage"
+									},
+									{
+										"id": "other-buildpack-id",
+										"name": "other-buildpack-name",
+										"version": "other-buildpack-version",
+										"homepage": "other-buildpack-homepage"
+									}
+								],
+								"detection_order": [
+									{
+										"buildpacks": [
+											{
+												"id": "some-buildpack-id",
+												"version": "some-buildpack-version",
+												"buildpacks": [
+													{
+														"id": "other-buildpack-id",
+														"version": "other-buildpack-version",
+														"optional": true
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						}`)
+						return nil
+					}
+				})
+
+				it("returns the default builder", func() {
+					builder, err := pack.Builder.Inspect.Execute()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(builder).To(Equal(occam.Builder{
+						BuilderName: "default-builder",
+						Trusted:     true,
+						Default:     true,
+						LocalInfo: occam.BuilderInfo{
+							Description: "some-builder-description",
+							CreatedBy: occam.BuilderInfoCreatedBy{
+								Name:    "some-creator-name",
+								Version: "some-creator-version",
+							},
+							Stack: occam.BuilderInfoStack{
+								ID: "some-stack-id",
+							},
+							Lifecycle: occam.BuilderInfoLifecycle{
+								Version: "some-lifecycle-version",
+								BuildpackAPIs: occam.BuilderInfoLifecycleAPIs{
+									Deprecated: []string{
+										"some-deprecated-api-version",
+									},
+									Supported: []string{
+										"some-api-version",
+										"other-api-version",
+									},
+								},
+								PlatformAPIs: occam.BuilderInfoLifecycleAPIs{
+									Deprecated: []string{
+										"some-deprecated-api-version",
+									},
+									Supported: []string{
+										"some-api-version",
+										"other-api-version",
+									},
+								},
+							},
+							RunImages: []occam.BuilderInfoRunImage{
+								{Name: "some-run-image"},
+							},
+							Buildpacks: []occam.BuilderInfoBuildpack{
+								{
+									ID:       "some-buildpack-id",
+									Name:     "some-buildpack-name",
+									Version:  "some-buildpack-version",
+									Homepage: "some-buildpack-homepage",
+								},
+								{
+									ID:       "other-buildpack-id",
+									Name:     "other-buildpack-name",
+									Version:  "other-buildpack-version",
+									Homepage: "other-buildpack-homepage",
+								},
+							},
+							DetectionOrder: []occam.BuilderInfoDetectionOrder{
+								{
+									Buildpacks: []occam.BuilderInfoDetectionOrderBuildpack{
+										{
+											ID:      "some-buildpack-id",
+											Version: "some-buildpack-version",
+											Buildpacks: []occam.BuilderInfoDetectionOrderBuildpack{
+												{
+													ID:       "other-buildpack-id",
+													Version:  "other-buildpack-version",
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						RemoteInfo: occam.BuilderInfo{
+							Description: "some-builder-description",
+							CreatedBy: occam.BuilderInfoCreatedBy{
+								Name:    "some-creator-name",
+								Version: "some-creator-version",
+							},
+							Stack: occam.BuilderInfoStack{
+								ID: "some-stack-id",
+							},
+							Lifecycle: occam.BuilderInfoLifecycle{
+								Version: "some-lifecycle-version",
+								BuildpackAPIs: occam.BuilderInfoLifecycleAPIs{
+									Deprecated: []string{
+										"some-deprecated-api-version",
+									},
+									Supported: []string{
+										"some-api-version",
+										"other-api-version",
+									},
+								},
+								PlatformAPIs: occam.BuilderInfoLifecycleAPIs{
+									Deprecated: []string{
+										"some-deprecated-api-version",
+									},
+									Supported: []string{
+										"some-api-version",
+										"other-api-version",
+									},
+								},
+							},
+							RunImages: []occam.BuilderInfoRunImage{
+								{Name: "some-run-image"},
+							},
+							Buildpacks: []occam.BuilderInfoBuildpack{
+								{
+									ID:       "some-buildpack-id",
+									Name:     "some-buildpack-name",
+									Version:  "some-buildpack-version",
+									Homepage: "some-buildpack-homepage",
+								},
+								{
+									ID:       "other-buildpack-id",
+									Name:     "other-buildpack-name",
+									Version:  "other-buildpack-version",
+									Homepage: "other-buildpack-homepage",
+								},
+							},
+							DetectionOrder: []occam.BuilderInfoDetectionOrder{
+								{
+									Buildpacks: []occam.BuilderInfoDetectionOrderBuildpack{
+										{
+											ID:      "some-buildpack-id",
+											Version: "some-buildpack-version",
+											Buildpacks: []occam.BuilderInfoDetectionOrderBuildpack{
+												{
+													ID:       "other-buildpack-id",
+													Version:  "other-buildpack-version",
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					}))
+
+					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+						"builder", "inspect",
+						"--output", "json",
+					}))
+				})
+			})
+
+			context("when given a specific builder name", func() {
+				it.Before(func() {
+					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+						fmt.Fprintln(execution.Stdout, `{
+							"local_info": {
+								"stack": {
+									"id": "other-stack-id"
+								}
+							},
+							"remote_info": {
+								"stack": {
+									"id": "other-stack-id"
+								}
+							}
+						}`)
+						return nil
+					}
+				})
+
+				it("returns the builder matching that name", func() {
+					builder, err := pack.Builder.Inspect.Execute("other-builder")
+					Expect(err).NotTo(HaveOccurred())
+					Expect(builder).To(Equal(occam.Builder{
+						LocalInfo: occam.BuilderInfo{
+							Stack: occam.BuilderInfoStack{
+								ID: "other-stack-id",
+							},
+						},
+						RemoteInfo: occam.BuilderInfo{
+							Stack: occam.BuilderInfoStack{
+								ID: "other-stack-id",
+							},
+						},
+					}))
+
+					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+						"builder", "inspect", "other-builder",
+						"--output", "json",
+					}))
+				})
+			})
+
+			context("failure cases", func() {
+				context("when the pack executable fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							fmt.Fprint(execution.Stdout, "some failure message")
+							return errors.New("some error")
+						}
+					})
+
+					it("returns an error", func() {
+						_, err := pack.Builder.Inspect.Execute()
+						Expect(err).To(MatchError("failed to pack builder inspect: some error\n\nOutput:\nsome failure message"))
+					})
+				})
+
+				context("when the pack returns unparseable JSON", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							fmt.Fprintln(execution.Stdout, "%%%")
+							return nil
+						}
+					})
+
+					it("returns an error", func() {
+						_, err := pack.Builder.Inspect.Execute()
+						Expect(err).To(MatchError(ContainSubstring("failed to parse JSON: invalid character '%'")))
+					})
+				})
+			})
+		})
+	})
 }
