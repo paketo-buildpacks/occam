@@ -15,6 +15,7 @@ func TestUnitOccam(t *testing.T) {
 	suite("CacheVolumeNames", testCacheVolumeNames)
 	suite("Container", testContainer)
 	suite("Docker", testDocker)
+	suite("Image", testImage)
 	suite("Pack", testPack)
 	suite("RandomName", testRandomName)
 	suite("Source", testSource)

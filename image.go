@@ -77,3 +77,13 @@ func NewImageFromInspectOutput(output []byte) (Image, error) {
 		Labels:     inspect[0].Config.Labels,
 	}, nil
 }
+
+func (i Image) BuildpackForKey(key string) (ImageBuildpackMetadata, error) {
+	for _, buildpack := range i.Buildpacks {
+		if buildpack.Key == key {
+			return buildpack, nil
+		}
+	}
+
+	return ImageBuildpackMetadata{}, fmt.Errorf("no buildpack found for key: %s", key)
+}
