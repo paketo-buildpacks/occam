@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/onsi/gomega/types"
 	"github.com/paketo-buildpacks/occam"
@@ -30,6 +32,18 @@ type ServeMatcher struct {
 	docker   occam.Docker
 	response string
 	client   *http.Client
+}
+
+type Header struct {
+	key   string
+	value string
+}
+
+func WithHeader(key, value string) Header {
+	return Header{
+		key:   key,
+		value: value,
+	}
 }
 
 // OnPort sets the container port that is expected to be exposed.
@@ -96,6 +110,12 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 	}
 
 	if response != nil {
+		if header, ok := sm.expected.(Header); ok {
+			formatHeaders(sm, response)
+			sm.expected = fmt.Sprintf("Header '%s=%s'", header.key, header.value)
+			return response.Header.Get(header.key) == header.value, nil
+		}
+
 		defer response.Body.Close()
 		content, err := io.ReadAll(response.Body)
 		if err != nil {
@@ -114,6 +134,20 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 		}
 	}
 	return false, nil
+}
+
+func formatHeaders(sm *ServeMatcher, response *http.Response) {
+	var keys []string
+	for key := range response.Header {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	sm.response = ""
+	for _, key := range keys {
+		sm.response += fmt.Sprintf("Header '%s=%s'\n\t", key, strings.Join(response.Header.Values(key), ", "))
+	}
+	sm.response = strings.TrimSpace(sm.response)
 }
 
 func (sm *ServeMatcher) compare(actual string, expected interface{}) (bool, error) {

@@ -35,6 +35,8 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				return
 			}
 
+			w.Header().Set("Date", "Sat, 17 Sep 2022 03:28:54 GMT")
+
 			switch req.URL.Path {
 			case "/":
 				w.WriteHeader(http.StatusOK)
@@ -240,6 +242,30 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 		})
+
+		context("WithHeader", func() {
+			it("returns true with the header is found", func() {
+				matcher = matchers.Serve(matchers.WithHeader("Content-Type", "text/plain; charset=utf-8"))
+
+				result, err := matcher.Match(occam.Container{
+					Ports: map[string]string{"8080": port},
+					Env:   map[string]string{"PORT": "8080"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(BeTrue())
+			})
+
+			it("returns false with the header is not found", func() {
+				matcher = matchers.Serve(matchers.WithHeader("Content-Type", "other"))
+
+				result, err := matcher.Match(occam.Container{
+					Ports: map[string]string{"8080": port},
+					Env:   map[string]string{"PORT": "8080"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(BeFalse())
+			})
+		})
 	})
 
 	context("when the matcher fails", func() {
@@ -284,6 +310,26 @@ Container logs:
 some logs
 	`)))
 			})
+
+			it("returns a useful error message for WithHeader", func() {
+				matcher = matchers.Serve(matchers.WithHeader("Content-Type", "other"))
+				_, _ = matcher.Match(occam.Container{
+					Ports: map[string]string{"8080": port},
+					Env:   map[string]string{"PORT": "8080"},
+				})
+
+				message := matcher.FailureMessage(actual)
+				Expect(message).To(ContainSubstring(strings.TrimSpace(`
+Expected the response from docker container some-container-id:
+
+	Header 'Content-Length=11'
+	Header 'Content-Type=text/plain; charset=utf-8'
+	Header 'Date=Sat, 17 Sep 2022 03:28:54 GMT'
+
+to contain:
+
+	Header 'Content-Type=other'`)))
+			})
 		})
 
 		context("NegatedFailureMessage", func() {
@@ -303,6 +349,26 @@ Container logs:
 some logs
 	`)))
 			})
+		})
+
+		it("returns a useful error message for WithHeader", func() {
+			matcher = matchers.Serve(matchers.WithHeader("Content-Type", "other"))
+			_, _ = matcher.Match(occam.Container{
+				Ports: map[string]string{"8080": port},
+				Env:   map[string]string{"PORT": "8080"},
+			})
+
+			message := matcher.NegatedFailureMessage(actual)
+			Expect(message).To(ContainSubstring(strings.TrimSpace(`
+Expected the response from docker container some-container-id:
+
+	Header 'Content-Length=11'
+	Header 'Content-Type=text/plain; charset=utf-8'
+	Header 'Date=Sat, 17 Sep 2022 03:28:54 GMT'
+
+not to contain:
+
+	Header 'Content-Type=other'`)))
 		})
 	})
 }
