@@ -12,5 +12,6 @@ func TestUnitMatchers(t *testing.T) {
 	suite("BeAvailable", testBeAvailable)
 	suite("ContainLines", testContainLines)
 	suite("Serve", testServe)
+	suite("BeAFileMatching", testBeAFileMatching)
 	suite.Run(t)
 }
