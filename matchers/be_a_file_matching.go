@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 )
 
 type BeAFileMatchingMatcher struct {
+	expected        interface{}
 	expectedMatcher types.GomegaMatcher
 	contents        string
 }
 
-func BeAFileMatching(expectedMatcher types.GomegaMatcher) *BeAFileMatchingMatcher {
+func BeAFileMatching(expected interface{}) *BeAFileMatchingMatcher {
 	return &BeAFileMatchingMatcher{
-		expectedMatcher: expectedMatcher,
+		expected: expected,
 	}
 }
 
@@ -24,6 +26,14 @@ func (matcher *BeAFileMatchingMatcher) Match(actual interface{}) (success bool, 
 	actualFilename, ok := actual.(string)
 	if !ok {
 		return false, fmt.Errorf("BeAFileMatchingMatcher expects a file path")
+	}
+
+	if expectedString, ok := matcher.expected.(string); ok {
+		matcher.expectedMatcher = gomega.Equal(expectedString)
+	} else {
+		if matcher.expectedMatcher, ok = matcher.expected.(types.GomegaMatcher); !ok {
+			return false, fmt.Errorf("BeAFileMatching expects a string or a types.GomegaMatcher")
+		}
 	}
 
 	bytes, err := os.ReadFile(actualFilename)
