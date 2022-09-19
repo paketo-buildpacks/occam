@@ -24,6 +24,24 @@ func testBeAFileMatching(t *testing.T, context spec.G, it spec.S) {
 		Expect(os.WriteFile(filename, []byte("hello world"), os.ModePerm)).To(Succeed())
 	})
 
+	context("uses Equal by default", func() {
+		it("will pass", func() {
+			matcher = matchers.BeAFileMatching("hello world")
+
+			match, err := matcher.Match(filename)
+			Expect(match).To(Equal(true))
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		it("will fail", func() {
+			matcher = matchers.BeAFileMatching("foobar")
+
+			match, err := matcher.Match(filename)
+			Expect(match).To(Equal(false))
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
 	context("will wrap ContainsSubstring", func() {
 		it("will pass", func() {
 			matcher = matchers.BeAFileMatching(ContainSubstring("hello"))
@@ -120,6 +138,14 @@ func testBeAFileMatching(t *testing.T, context spec.G, it spec.S) {
 	})
 
 	context("failure cases", func() {
+		context("BeAFileMatching is called with a non-string and non-types.GomegaMatcher", func() {
+			it("will return an error", func() {
+				matcher = matchers.BeAFileMatching(42)
+				_, err := matcher.Match(filename)
+				Expect(err).To(MatchError("BeAFileMatching expects a string or a types.GomegaMatcher"))
+			})
+		})
+
 		context("Match is called with a non-string", func() {
 			it("will return an error", func() {
 				matcher = matchers.BeAFileMatching(ContainSubstring(""))
