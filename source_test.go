@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
+	"github.com/paketo-buildpacks/occam/matchers"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
@@ -39,13 +40,8 @@ func testSource(t *testing.T, context spec.G, it spec.S) {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(destination).To(BeADirectory())
 
-		content, err := os.ReadFile(filepath.Join(destination, "some-file"))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(string(content)).To(Equal("some-content"))
-
-		content, err = os.ReadFile(filepath.Join(destination, ".occam-key"))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(content).To(HaveLen(32))
+		Expect(filepath.Join(destination, "some-file")).To(matchers.BeAFileMatching("some-content"))
+		Expect(filepath.Join(destination, ".occam-key")).To(matchers.BeAFileMatching(HaveLen(32)))
 	})
 
 	context("failure cases", func() {
