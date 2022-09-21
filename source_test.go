@@ -34,14 +34,29 @@ func testSource(t *testing.T, context spec.G, it spec.S) {
 		Expect(os.RemoveAll(destination)).To(Succeed())
 	})
 
-	it("copies the given directory to a temporary directory with a random file added for uniqueness", func() {
-		var err error
-		destination, err = occam.Source(source)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(destination).To(BeADirectory())
+	context("Source", func() {
+		it("copies the given directory to a temporary directory with a random file added for uniqueness", func() {
+			var err error
+			destination, err = occam.Source(source)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(destination).To(BeADirectory())
 
-		Expect(filepath.Join(destination, "some-file")).To(matchers.BeAFileMatching("some-content"))
-		Expect(filepath.Join(destination, ".occam-key")).To(matchers.BeAFileMatching(HaveLen(32)))
+			Expect(filepath.Join(destination, "some-file")).To(matchers.BeAFileMatching("some-content"))
+			Expect(filepath.Join(destination, ".occam-key")).To(matchers.BeAFileMatching(HaveLen(32)))
+		})
+
+		context("failure cases", func() {
+			context("when the source cannot be copied", func() {
+				it.Before(func() {
+					Expect(os.Chmod(filepath.Join(source, "some-file"), 0000)).To(Succeed())
+				})
+
+				it("returns an error", func() {
+					_, err := occam.Source(source)
+					Expect(err).To(MatchError(ContainSubstring("permission denied")))
+				})
+			})
+		})
 	})
 
 	context("failure cases", func() {
