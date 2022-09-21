@@ -15,27 +15,11 @@ import (
 // The caller must clean up the returned directory.
 func Source(path string) (string, error) {
 	destination, err := os.MkdirTemp("", "source")
-	if err != nil { // untested
-		return "", err
-	}
-
-	err = fs.Copy(path, destination)
 	if err != nil {
 		return "", err
 	}
 
-	content := make([]byte, 32)
-	_, err = rand.Read(content)
-	if err != nil { // untested
-		return "", err
-	}
-
-	err = os.WriteFile(filepath.Join(destination, ".occam-key"), content, 0644)
-	if err != nil { // untested
-		return "", err
-	}
-
-	return destination, nil
+	return destination, move(path, destination)
 }
 
 type SimpleTesting interface {
@@ -53,19 +37,25 @@ type SimpleTesting interface {
 func SourceTesting(path string, t SimpleTesting) string {
 	destination := t.TempDir()
 
-	if err := fs.Copy(path, destination); err != nil {
+	if err := move(path, destination); err != nil {
 		t.Fatalf(err.Error())
+	}
+
+	return destination
+}
+
+func move(source, dest string) error {
+	err := fs.Copy(source, dest)
+	if err != nil {
+		return err
 	}
 
 	content := make([]byte, 32)
-	_, err := rand.Read(content)
+	_, err = rand.Read(content)
 	if err != nil { // untested
-		t.Fatalf(err.Error())
+		return err
 	}
 
-	err = os.WriteFile(filepath.Join(destination, ".occam-key"), content, 0644)
-	if err != nil { // untested
-		t.Fatalf(err.Error())
-	}
-	return destination
+	// untested
+	return os.WriteFile(filepath.Join(dest, ".occam-key"), content, 0644)
 }
