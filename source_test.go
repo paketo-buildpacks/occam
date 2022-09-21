@@ -6,11 +6,14 @@ import (
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
+	"github.com/paketo-buildpacks/occam/fakes"
 	"github.com/paketo-buildpacks/occam/matchers"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
 )
+
+//go:generate faux --interface SimpleTesting --output fakes/simple_testing.go
 
 func testSource(t *testing.T, context spec.G, it spec.S) {
 	var (
@@ -59,15 +62,37 @@ func testSource(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
-	context("failure cases", func() {
-		context("when the source cannot be copied", func() {
-			it.Before(func() {
-				Expect(os.Chmod(filepath.Join(source, "some-file"), 0000)).To(Succeed())
-			})
+	context("SourceTesting", func() {
+		var (
+			fauxT *fakes.SimpleTesting
+		)
 
-			it("returns an error", func() {
-				_, err := occam.Source(source)
-				Expect(err).To(MatchError(ContainSubstring("permission denied")))
+		it.Before(func() {
+			fauxT = &fakes.SimpleTesting{}
+			fauxT.TempDirCall.Stub = func() string {
+				return t.TempDir()
+			}
+		})
+
+		it("copies the given directory to a temporary directory with a random file added for uniqueness", func() {
+			destination = occam.SourceTesting(source, fauxT)
+			Expect(destination).To(BeADirectory())
+
+			Expect(filepath.Join(destination, "some-file")).To(matchers.BeAFileMatching("some-content"))
+			Expect(filepath.Join(destination, ".occam-key")).To(matchers.BeAFileMatching(HaveLen(32)))
+		})
+
+		context("failure cases", func() {
+			context("when the source cannot be copied", func() {
+				it.Before(func() {
+					Expect(os.Chmod(filepath.Join(source, "some-file"), 0000)).To(Succeed())
+				})
+
+				it("returns an error", func() {
+					occam.SourceTesting(source, fauxT)
+					Expect(fauxT.FatalfCall.Receives.Format).
+						To(ContainSubstring("open %s: permission denied", filepath.Join(source, "some-file")))
+				})
 			})
 		})
 	})
