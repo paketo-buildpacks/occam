@@ -50,7 +50,7 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				w.WriteHeader(http.StatusTeapot)
 			default:
 				fmt.Fprintln(w, "unknown path")
-				t.Fatal(fmt.Sprintf("unknown path: %s", req.URL.Path))
+				t.Fatalf("unknown path: %s", req.URL.Path)
 			}
 		}))
 
