@@ -6,7 +6,7 @@ require (
 	github.com/ForestEckhardt/freezer v0.0.11
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.20.2
-	github.com/paketo-buildpacks/packit/v2 v2.5.1
+	github.com/paketo-buildpacks/packit/v2 v2.6.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.14.0
 )
