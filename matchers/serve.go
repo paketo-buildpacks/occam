@@ -26,12 +26,13 @@ func Serve(expected interface{}) *ServeMatcher {
 }
 
 type ServeMatcher struct {
-	expected interface{}
-	port     int
-	endpoint string
-	docker   occam.Docker
-	response string
-	client   *http.Client
+	expected        interface{}
+	port            int
+	endpoint        string
+	docker          occam.Docker
+	response        string
+	client          *http.Client
+	responseHeaders http.Header
 }
 
 type Header struct {
@@ -110,9 +111,8 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 	}
 
 	if response != nil {
+		sm.responseHeaders = response.Header
 		if header, ok := sm.expected.(Header); ok {
-			formatHeaders(sm, response)
-			sm.expected = fmt.Sprintf("Header '%s=%s'", header.key, header.value)
 			return response.Header.Get(header.key) == header.value, nil
 		}
 
@@ -136,18 +136,18 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 	return false, nil
 }
 
-func formatHeaders(sm *ServeMatcher, response *http.Response) {
+func formatHeaders(headers http.Header) string {
 	var keys []string
-	for key := range response.Header {
+	for key := range headers {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
 
-	sm.response = ""
+	formatted := ""
 	for _, key := range keys {
-		sm.response += fmt.Sprintf("Header '%s=%s'\n\t", key, strings.Join(response.Header.Values(key), ", "))
+		formatted += fmt.Sprintf("Header '%s=%s'\n\t", key, strings.Join(headers.Values(key), ", "))
 	}
-	sm.response = strings.TrimSpace(sm.response)
+	return strings.TrimSpace(formatted)
 }
 
 func (sm *ServeMatcher) compare(actual string, expected interface{}) (bool, error) {
@@ -166,10 +166,16 @@ func (sm *ServeMatcher) compare(actual string, expected interface{}) (bool, erro
 func (sm *ServeMatcher) FailureMessage(actual interface{}) (message string) {
 	container := actual.(occam.Container)
 
+	response, expected := sm.response, sm.expected
+
+	if header, ok := sm.expected.(Header); ok {
+		response, expected = formatHeaders(sm.responseHeaders), fmt.Sprintf("Header '%s=%s'", header.key, header.value)
+	}
+
 	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nto contain:\n\n\t%s",
 		container.ID,
-		sm.response,
-		sm.expected,
+		response,
+		expected,
 	)
 
 	if logs, _ := sm.docker.Container.Logs.Execute(container.ID); logs != nil {
@@ -182,10 +188,16 @@ func (sm *ServeMatcher) FailureMessage(actual interface{}) (message string) {
 func (sm *ServeMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	container := actual.(occam.Container)
 
+	response, expected := sm.response, sm.expected
+
+	if header, ok := sm.expected.(Header); ok {
+		response, expected = formatHeaders(sm.responseHeaders), fmt.Sprintf("Header '%s=%s'", header.key, header.value)
+	}
+
 	message = fmt.Sprintf("Expected the response from docker container %s:\n\n\t%s\n\nnot to contain:\n\n\t%s",
 		container.ID,
-		sm.response,
-		sm.expected,
+		response,
+		expected,
 	)
 
 	if logs, _ := sm.docker.Container.Logs.Execute(container.ID); logs != nil {
