@@ -21,7 +21,8 @@ import (
 
 func testServe(t *testing.T, context spec.G, it spec.S) {
 	var (
-		Expect = NewWithT(t).Expect
+		Expect     = NewWithT(t).Expect
+		Eventually = NewWithT(t).Eventually
 
 		matcher *matchers.ServeMatcher
 		server  *httptest.Server
@@ -29,6 +30,8 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
+		count := 0
+
 		server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if req.Method == http.MethodHead {
 				http.Error(w, "NotFound", http.StatusNotFound)
@@ -36,6 +39,11 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			}
 
 			w.Header().Set("Date", "Sat, 17 Sep 2022 03:28:54 GMT")
+
+			if count > 5 {
+				w.Header().Set("X-Paketo-Count", fmt.Sprintf("%d", count))
+			}
+			count++
 
 			switch req.URL.Path {
 			case "/":
@@ -264,6 +272,17 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).To(BeFalse())
+			})
+
+			context("Eventually WithHeader still works", func() {
+				it("eventually is true", func() {
+					container := occam.Container{
+						Ports: map[string]string{"8080": port},
+						Env:   map[string]string{"PORT": "8080"},
+					}
+
+					Eventually(container).Should(matchers.Serve(matchers.WithHeader("X-Paketo-Count", "20")))
+				})
 			})
 		})
 	})
