@@ -6,7 +6,7 @@ require (
 	github.com/ForestEckhardt/freezer v0.0.12
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.24.0
-	github.com/paketo-buildpacks/packit/v2 v2.6.1
+	github.com/paketo-buildpacks/packit/v2 v2.7.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.15.0
 )
@@ -43,8 +43,8 @@ require (
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	google.golang.org/genproto v0.0.0-20220805133916-01dd62135a58 // indirect
-	google.golang.org/grpc v1.49.0 // indirect
+	google.golang.org/genproto v0.0.0-20221010155953-15ba04fc1c0e // indirect
+	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
