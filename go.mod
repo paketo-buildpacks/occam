@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/ForestEckhardt/freezer v0.0.12
 	github.com/oklog/ulid v1.3.1
-	github.com/onsi/gomega v1.24.0
+	github.com/onsi/gomega v1.24.1
 	github.com/paketo-buildpacks/packit/v2 v2.7.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.15.0
@@ -40,8 +40,8 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/net v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20221010155953-15ba04fc1c0e // indirect
 	google.golang.org/grpc v1.50.1 // indirect
