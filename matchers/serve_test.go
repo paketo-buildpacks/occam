@@ -214,6 +214,22 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("when given a protocol", func() {
+			it.Before(func() {
+				matcher = matcher.WithProtocol("https")
+			})
+
+			it("uses provided protocol", func() {
+				_, err := matcher.Match(occam.Container{
+					Ports: map[string]string{
+						"8080": port,
+					},
+					Env: map[string]string{"PORT": "8080"},
+				})
+				Expect(err).To(MatchError(ContainSubstring("server gave HTTP response to HTTPS client")))
+			})
+		})
+
 		context("failure cases", func() {
 			context("the port is not in the container port mapping", func() {
 				it.Before(func() {
