@@ -21,6 +21,7 @@ func Serve(expected interface{}) *ServeMatcher {
 	return &ServeMatcher{
 		expected: expected,
 		client:   http.DefaultClient,
+		protocol: "http",
 		docker:   occam.NewDocker(),
 	}
 }
@@ -29,6 +30,7 @@ type ServeMatcher struct {
 	expected        interface{}
 	port            int
 	endpoint        string
+	protocol        string
 	docker          occam.Docker
 	response        string
 	client          *http.Client
@@ -69,6 +71,13 @@ func (sm *ServeMatcher) WithEndpoint(endpoint string) *ServeMatcher {
 	return sm
 }
 
+// WithProtocol sets the protocol of the request.
+// For example, WithProtocol("https") will make an https request
+func (sm *ServeMatcher) WithProtocol(protocol string) *ServeMatcher {
+	sm.protocol = protocol
+	return sm
+}
+
 // WithDocker sets the occam.Docker that the matcher will use to access
 // the 'actual' container's metadata.
 func (sm *ServeMatcher) WithDocker(docker occam.Docker) *ServeMatcher {
@@ -104,7 +113,7 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 		return false, errors.New(message)
 	}
 
-	response, err := sm.client.Get(fmt.Sprintf("http://%s:%s%s", container.Host(), container.HostPort(port), sm.endpoint))
+	response, err := sm.client.Get(fmt.Sprintf("%s://%s:%s%s", sm.protocol, container.Host(), container.HostPort(port), sm.endpoint))
 
 	if err != nil {
 		return false, err
