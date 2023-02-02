@@ -13,6 +13,7 @@ type Docker struct {
 	Image struct {
 		Inspect DockerImageInspect
 		Remove  DockerImageRemove
+		Tag     DockerImageTag
 	}
 
 	Container struct {
@@ -39,6 +40,7 @@ func NewDocker() Docker {
 
 	docker.Image.Inspect = DockerImageInspect{executable: executable}
 	docker.Image.Remove = DockerImageRemove{executable: executable}
+	docker.Image.Tag = DockerImageTag{executable: executable}
 
 	docker.Container.Copy = DockerContainerCopy{executable: executable}
 	docker.Container.Exec = DockerContainerExec{executable: executable}
@@ -63,6 +65,7 @@ func NewDocker() Docker {
 func (d Docker) WithExecutable(executable Executable) Docker {
 	d.Image.Inspect.executable = executable
 	d.Image.Remove.executable = executable
+	d.Image.Tag.executable = executable
 
 	d.Container.Copy.executable = executable
 	d.Container.Exec.executable = executable
@@ -102,16 +105,45 @@ func (i DockerImageInspect) Execute(ref string) (Image, error) {
 
 type DockerImageRemove struct {
 	executable Executable
+	force      bool
+}
+
+func (r DockerImageRemove) WithForce() DockerImageRemove {
+	r.force = true
+	return r
 }
 
 func (r DockerImageRemove) Execute(ref string) error {
+	args := []string{"image", "remove", ref}
+
+	if r.force {
+		args = append(args, "--force")
+	}
+
 	stderr := bytes.NewBuffer(nil)
 	err := r.executable.Execute(pexec.Execution{
-		Args:   []string{"image", "remove", ref},
+		Args:   args,
 		Stderr: stderr,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to remove docker image: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+type DockerImageTag struct {
+	executable Executable
+}
+
+func (r DockerImageTag) Execute(ref, target string) error {
+	stderr := bytes.NewBuffer(nil)
+	err := r.executable.Execute(pexec.Execution{
+		Args:   []string{"image", "tag", ref, target},
+		Stderr: stderr,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to tag docker image: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
 	return nil

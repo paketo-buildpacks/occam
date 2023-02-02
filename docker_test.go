@@ -137,6 +137,17 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				}))
 			})
 
+			context("when given the optional force setting", func() {
+				it("sets the  force flag on the remove command", func() {
+					err := docker.Image.Remove.WithForce().Execute("some-image-id")
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+						"image", "remove", "some-image-id", "--force",
+					}))
+				})
+			})
+
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
@@ -149,6 +160,33 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					it("returns an error", func() {
 						err := docker.Image.Remove.Execute("some-image-id")
 						Expect(err).To(MatchError("failed to remove docker image: exit status 1: Error: No such image: some-image-id"))
+					})
+				})
+			})
+		})
+
+		context("Tag", func() {
+			it("Tags the image with the target name", func() {
+				err := docker.Image.Tag.Execute("some-image-id", "new-image-id")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"image", "tag", "some-image-id", "new-image-id",
+				}))
+			})
+
+			context("failure cases", func() {
+				context("when the executable fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							fmt.Fprintln(execution.Stderr, "Error: No such image: some-image-id")
+							return errors.New("exit status 1")
+						}
+					})
+
+					it("returns an error", func() {
+						err := docker.Image.Tag.Execute("some-image-id", "some-other-id")
+						Expect(err).To(MatchError("failed to tag docker image: exit status 1: Error: No such image: some-image-id"))
 					})
 				})
 			})
