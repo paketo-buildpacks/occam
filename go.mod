@@ -8,7 +8,7 @@ require (
 	github.com/onsi/gomega v1.27.0
 	github.com/paketo-buildpacks/packit/v2 v2.8.1
 	github.com/sclevine/spec v1.4.0
-	github.com/testcontainers/testcontainers-go v0.17.0
+	github.com/testcontainers/testcontainers-go v0.18.0
 )
 
 require (
