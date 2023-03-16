@@ -3,6 +3,8 @@ package occam_test
 import (
 	"errors"
 	"fmt"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
@@ -899,13 +901,61 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-						"container",
-						"exec",
+						"container", "exec",
 						"abc123",
-						"/bin/bash",
-						"-c",
-						"echo hi",
+						"/bin/bash", "-c", "echo hi",
 					}))
+				})
+
+				context("WithStdin", func() {
+					it("passes the reader as stdin to the underlying docker exec call", func() {
+						err := docker.Container.Exec.
+							WithStdin(strings.NewReader("goodbye moon\nhello world")).
+							Execute("abc123", "grep", "hello")
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+							"container", "exec",
+							"abc123",
+							"grep", "hello",
+						}))
+
+						content, err := io.ReadAll(executable.ExecuteCall.Receives.Execution.Stdin)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(content)).To(Equal("goodbye moon\nhello world"))
+					})
+				})
+
+				context("WithUser", func() {
+					it("sets the --user flag", func() {
+						err := docker.Container.Exec.
+							WithUser("some-user:some-group").
+							Execute("abc123", "echo", "hello")
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+							"container", "exec",
+							"--user", "some-user:some-group",
+							"abc123",
+							"echo", "hello",
+						}))
+					})
+				})
+
+				context("WithInteractive", func() {
+					it("sets the --interactive flag", func() {
+						err := docker.Container.Exec.
+							WithInteractive().
+							Execute("abc123", "echo", "hello")
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+							"container", "exec",
+							"--interactive",
+							"abc123",
+							"echo", "hello",
+						}))
+					})
 				})
 
 				context("failure cases", func() {
