@@ -1,6 +1,7 @@
 package packagers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -32,9 +33,21 @@ func (j Jam) WithExecutable(executable Executable) Jam {
 }
 
 func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
+
+	extensionTomlPath := filepath.Join(buildpackDir, "extension.toml")
+
+	buildpackOrExtensionToml := "buildpack.toml"
+	command := "--buildpack"
+	if _, err := os.Stat(extensionTomlPath); err == nil {
+		buildpackOrExtensionToml = "extension.toml"
+		command = "--extension"
+	}
+
+	fmt.Println("jam", command, filepath.Join(buildpackDir, buildpackOrExtensionToml), "--output", output, "--version", version, "--offline", offline)
+
 	args := []string{
 		"pack",
-		"--buildpack", filepath.Join(buildpackDir, "buildpack.toml"),
+		command, filepath.Join(buildpackDir, buildpackOrExtensionToml),
 		"--output", output,
 		"--version", version,
 	}
