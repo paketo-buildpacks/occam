@@ -69,6 +69,7 @@ type PackBuild struct {
 	noColor bool
 
 	buildpacks    []string
+	extensions    []string
 	network       string
 	builder       string
 	clearCache    bool
@@ -85,6 +86,11 @@ type PackBuild struct {
 
 func (pb PackBuild) WithBuildpacks(buildpacks ...string) PackBuild {
 	pb.buildpacks = append(pb.buildpacks, buildpacks...)
+	return pb
+}
+
+func (pb PackBuild) WithExtensions(extensions ...string) PackBuild {
+	pb.extensions = append(pb.extensions, extensions...)
 	return pb
 }
 
@@ -154,6 +160,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 
 	for _, buildpack := range pb.buildpacks {
 		args = append(args, "--buildpack", buildpack)
+	}
+
+	for _, extension := range pb.extensions {
+		args = append(args, "--extension", extension)
 	}
 
 	if pb.network != "" {
