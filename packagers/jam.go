@@ -1,10 +1,10 @@
 package packagers
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/paketo-buildpacks/packit/v2/fs"
 	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
 
@@ -38,12 +38,11 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 
 	buildpackOrExtensionToml := "buildpack.toml"
 	command := "--buildpack"
-	if _, err := os.Stat(extensionTomlPath); err == nil {
+
+	if fileExists, err := fs.Exists(extensionTomlPath); fileExists == true && err == nil {
 		buildpackOrExtensionToml = "extension.toml"
 		command = "--extension"
 	}
-
-	fmt.Println("jam", command, filepath.Join(buildpackDir, buildpackOrExtensionToml), "--output", output, "--version", version, "--offline", offline)
 
 	args := []string{
 		"pack",
