@@ -39,7 +39,7 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 	buildpackOrExtensionToml := "buildpack.toml"
 	command := "--buildpack"
 
-	if fileExists, err := fs.Exists(extensionTomlPath); fileExists == true && err == nil {
+	if fileExists, err := fs.Exists(extensionTomlPath); fileExists && err == nil {
 		buildpackOrExtensionToml = "extension.toml"
 		command = "--extension"
 	}
