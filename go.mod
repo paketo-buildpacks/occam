@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/ForestEckhardt/freezer v0.0.12
 	github.com/oklog/ulid v1.3.1
-	github.com/onsi/gomega v1.27.7
+	github.com/onsi/gomega v1.27.8
 	github.com/paketo-buildpacks/packit/v2 v2.11.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.20.1
