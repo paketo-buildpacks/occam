@@ -7,14 +7,24 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/docker/docker/client"
+	name "github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+	daemon "github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
 
+//go:generate faux --interface DockerDaemonClient --output fakes/daemon_client.go
+type DockerDaemonClient interface {
+	daemon.Client
+}
+
 type Docker struct {
 	Image struct {
-		Inspect DockerImageInspect
-		Remove  DockerImageRemove
-		Tag     DockerImageTag
+		ExportToOCI DockerImageOCI
+		Inspect     DockerImageInspect
+		Remove      DockerImageRemove
+		Tag         DockerImageTag
 	}
 
 	Container struct {
@@ -42,6 +52,7 @@ func NewDocker() Docker {
 	docker.Image.Inspect = DockerImageInspect{executable: executable}
 	docker.Image.Remove = DockerImageRemove{executable: executable}
 	docker.Image.Tag = DockerImageTag{executable: executable}
+	docker.Image.ExportToOCI = DockerImageOCI{}
 
 	docker.Container.Copy = DockerContainerCopy{executable: executable}
 	docker.Container.Exec = DockerContainerExec{executable: executable}
@@ -148,6 +159,38 @@ func (r DockerImageTag) Execute(ref, target string) error {
 	}
 
 	return nil
+}
+
+type DockerImageOCI struct {
+	client      DockerDaemonClient
+	nameOptions []name.Option
+}
+
+func (r DockerImageOCI) WithNameOptions(opts ...name.Option) DockerImageOCI {
+	r.nameOptions = opts
+	return r
+}
+
+func (r DockerImageOCI) WithClient(client DockerDaemonClient) DockerImageOCI {
+	r.client = client
+	return r
+}
+
+func (r DockerImageOCI) Execute(ref string) (v1.Image, error) {
+	if r.client == nil {
+		client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		if err != nil {
+			return nil, err
+		}
+
+		r.client = client
+	}
+	nameRef, err := name.ParseReference(ref, r.nameOptions...)
+	if err != nil {
+		return nil, err
+	}
+
+	return daemon.Image(nameRef, daemon.WithClient(r.client))
 }
 
 type DockerContainerRun struct {

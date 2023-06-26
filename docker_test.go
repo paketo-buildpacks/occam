@@ -1,12 +1,18 @@
 package occam_test
 
 import (
+	"bytes"
+	ctx "context"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
 	"testing"
 
+	"github.com/docker/docker/api/types"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/random"
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/paketo-buildpacks/occam"
 	"github.com/paketo-buildpacks/occam/fakes"
 	"github.com/paketo-buildpacks/packit/v2/pexec"
@@ -191,6 +197,40 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						Expect(err).To(MatchError("failed to tag docker image: exit status 1: Error: No such image: some-image-id"))
 					})
 				})
+			})
+		})
+
+		context("ExportToOCI", func() {
+			it("Exports Docker image as v1.Image", func() {
+				fakeImg, err := random.Image(1, 5)
+				Expect(err).NotTo(HaveOccurred())
+
+				fakeImgDigest, err := fakeImg.Digest()
+				Expect(err).NotTo(HaveOccurred())
+
+				mockClient := &fakes.DockerDaemonClient{}
+				mockClient.ImageInspectWithRawCall.Stub = func(_ ctx.Context, s string) (types.ImageInspect, []byte, error) {
+					return types.ImageInspect{
+						ID: fakeImgDigest.String(),
+					}, nil, nil
+				}
+				mockClient.ImageSaveCall.Stub = func(ctx ctx.Context, s []string) (io.ReadCloser, error) {
+					buf := bytes.NewBuffer(nil)
+					ref, _ := name.ParseReference("some-image-id")
+					err = tarball.Write(ref, fakeImg, buf)
+					Expect(err).NotTo(HaveOccurred())
+					return io.NopCloser(buf), nil
+				}
+				img, err := docker.Image.ExportToOCI.WithClient(mockClient).Execute("some-image-id")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(img).NotTo(BeNil())
+				digest, err := img.Digest()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(digest.String()).To(Equal(fakeImgDigest.String()))
+
+				layers, err := img.Layers()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(layers).To(HaveLen(5))
 			})
 		})
 	})
