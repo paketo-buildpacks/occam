@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/ForestEckhardt/freezer v0.0.12
-	github.com/docker/docker v23.0.5+incompatible
+	github.com/docker/docker v24.0.4+incompatible
 	github.com/google/go-containerregistry v0.14.0
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.27.8
