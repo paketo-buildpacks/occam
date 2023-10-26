@@ -7,7 +7,7 @@ require (
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/google/go-containerregistry v0.14.0
 	github.com/oklog/ulid v1.3.1
-	github.com/onsi/gomega v1.28.1
+	github.com/onsi/gomega v1.29.0
 	github.com/paketo-buildpacks/packit/v2 v2.12.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.25.0
