@@ -68,21 +68,27 @@ type PackBuild struct {
 	verbose bool
 	noColor bool
 
-	buildpacks    []string
-	extensions    []string
-	network       string
-	builder       string
-	clearCache    bool
-	env           map[string]string
-	trustBuilder  bool
-	pullPolicy    string
-	sbomOutputDir string
-	volumes       []string
-	gid           string
-	runImage      string
+	buildpacks          []string
+	extensions          []string
+	network             string
+	builder             string
+	clearCache          bool
+	env                 map[string]string
+	trustBuilder        bool
+	pullPolicy          string
+	sbomOutputDir       string
+	volumes             []string
+	gid                 string
+	runImage            string
+	additionalBuildArgs []string
 
 	// TODO: remove after deprecation period
 	noPull bool
+}
+
+func (pb PackBuild) WithAdditionalBuildArgs(args ...string) PackBuild {
+	pb.additionalBuildArgs = append(pb.additionalBuildArgs, args...)
+	return pb
 }
 
 func (pb PackBuild) WithRunImage(runImage string) PackBuild {
@@ -224,6 +230,8 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 	if pb.runImage != "" {
 		args = append(args, "--run-image", pb.runImage)
 	}
+
+	args = append(args, pb.additionalBuildArgs...)
 
 	buildLogBuffer := bytes.NewBuffer(nil)
 	err := pb.executable.Execute(pexec.Execution{
