@@ -346,6 +346,27 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("when given additional build args", func() {
+			it("includes the additional args", func() {
+				image, logs, err := pack.Build.
+					WithAdditionalBuildArgs("--not-supported-yet", "true").
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--not-supported-yet", "true",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+		})
+
 		context("failure cases", func() {
 			context("when the executable fails", func() {
 				it.Before(func() {
