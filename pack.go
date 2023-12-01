@@ -79,9 +79,15 @@ type PackBuild struct {
 	sbomOutputDir string
 	volumes       []string
 	gid           string
+	runImage      string
 
 	// TODO: remove after deprecation period
 	noPull bool
+}
+
+func (pb PackBuild) WithRunImage(runImage string) PackBuild {
+	pb.runImage = runImage
+	return pb
 }
 
 func (pb PackBuild) WithBuildpacks(buildpacks ...string) PackBuild {
@@ -213,6 +219,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 
 	if pb.gid != "" {
 		args = append(args, "--gid", pb.gid)
+	}
+
+	if pb.runImage != "" {
+		args = append(args, "--run-image", pb.runImage)
 	}
 
 	buildLogBuffer := bytes.NewBuffer(nil)

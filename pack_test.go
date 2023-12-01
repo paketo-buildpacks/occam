@@ -302,6 +302,27 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("when given optional run image", func() {
+			it("includes the --run-image option", func() {
+				image, logs, err := pack.Build.
+					WithRunImage("custom").
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--run-image", "custom",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+		})
+
 		context("when given optional gid", func() {
 			it("includes the --gid option and given argument on all commands", func() {
 				image, logs, err := pack.Build.
