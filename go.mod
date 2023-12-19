@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/ForestEckhardt/freezer v0.0.12
 	github.com/docker/docker v24.0.7+incompatible
-	github.com/google/go-containerregistry v0.14.0
+	github.com/google/go-containerregistry v0.17.0
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.30.0
 	github.com/paketo-buildpacks/packit/v2 v2.12.0
@@ -32,7 +32,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.3.1 // indirect
-	github.com/klauspost/compress v1.16.4 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
-	github.com/vbatts/tar-split v0.11.2 // indirect
+	github.com/vbatts/tar-split v0.11.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea // indirect
 	golang.org/x/mod v0.12.0 // indirect
