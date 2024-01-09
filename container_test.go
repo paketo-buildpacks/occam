@@ -3,7 +3,7 @@ package occam_test
 import (
 	"testing"
 
-	"github.com/paketo-buildpacks/occam"
+	occam "github.com/paketo-buildpacks/occam"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
@@ -44,4 +44,82 @@ func testContainer(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 	})
+
+	context("NewContainerFromInspectOutput", func() {
+		it("It creates a new container from inspect output ", func() {
+
+			output := []byte(`[
+			{
+				"Id": "container-id",
+				"Config": {
+					"Env": ["ENV_VAR1=value1", "ENV_VAR2=value2"]
+				},
+				"NetworkSettings": {
+					"Ports": {
+						"8080/tcp": [
+							{
+								"HostPort": "1234"
+							}
+						]
+					},
+					"Networks": {
+						"network1": {
+							"IPAddress": "192.168.0.1"
+						},
+						"network2": {
+							"IPAddress": "192.168.0.2"
+						}
+					}
+				}
+			}
+		]`)
+
+			container, err := occam.NewContainerFromInspectOutput(output)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(container.ID).To(Equal("container-id"))
+			Expect(container.Ports).To(HaveLen(1))
+			Expect(container.Ports).To(HaveKeyWithValue("8080", "1234"))
+			Expect(container.Env).To(HaveLen(2))
+			Expect(container.Env).To(HaveKeyWithValue("ENV_VAR1", "value1"))
+			Expect(container.Env).To(HaveKeyWithValue("ENV_VAR2", "value2"))
+			Expect(container.IPAddresses).To(HaveLen(2))
+			Expect(container.IPAddresses["network1"]).To(Equal("192.168.0.1"))
+			Expect(container.IPAddresses["network2"]).To(Equal("192.168.0.2"))
+		})
+
+		context("When there are no host ports but only container ports", func() {
+			it("It creates a new container without the exposed ports included ", func() {
+
+				output := []byte(`[
+				{
+					"Id": "container-id",
+					"Config": {
+						"Env": ["ENV_VAR1=value1", "ENV_VAR2=value2"]
+					},
+					"NetworkSettings": {
+						"Ports": {
+							"8080/tcp": []
+						},
+						"Networks": {
+							"network1": {
+								"IPAddress": "192.168.0.1"
+							}
+						}
+					}
+				}
+			]`)
+
+				container, err := occam.NewContainerFromInspectOutput(output)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(container.ID).To(Equal("container-id"))
+				Expect(container.Ports).To(HaveLen(0))
+				Expect(container.Env).To(HaveLen(2))
+				Expect(container.Env).To(HaveKeyWithValue("ENV_VAR1", "value1"))
+				Expect(container.Env).To(HaveKeyWithValue("ENV_VAR2", "value2"))
+				Expect(container.IPAddresses).To(HaveLen(1))
+				Expect(container.IPAddresses["network1"]).To(Equal("192.168.0.1"))
+			})
+		})
+	})
+
 }
