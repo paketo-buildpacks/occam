@@ -42,7 +42,9 @@ func NewContainerFromInspectOutput(output []byte) (Container, error) {
 		container.Ports = make(map[string]string)
 
 		for key, value := range inspect[0].NetworkSettings.Ports {
-			container.Ports[strings.TrimSuffix(key, "/tcp")] = value[0].HostPort
+			if len(value) > 0 {
+				container.Ports[strings.TrimSuffix(key, "/tcp")] = value[0].HostPort
+			}
 		}
 	}
 
