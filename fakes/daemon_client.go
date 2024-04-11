@@ -6,9 +6,23 @@ import (
 	"sync"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 )
 
 type DockerDaemonClient struct {
+	ImageHistoryCall struct {
+		mutex     sync.Mutex
+		CallCount int
+		Receives  struct {
+			Context context.Context
+			String  string
+		}
+		Returns struct {
+			HistoryResponseItemSlice []image.HistoryResponseItem
+			Error                    error
+		}
+		Stub func(context.Context, string) ([]image.HistoryResponseItem, error)
+	}
 	ImageInspectWithRawCall struct {
 		mutex     sync.Mutex
 		CallCount int
@@ -73,6 +87,17 @@ type DockerDaemonClient struct {
 	}
 }
 
+func (f *DockerDaemonClient) ImageHistory(param1 context.Context, param2 string) ([]image.HistoryResponseItem, error) {
+	f.ImageHistoryCall.mutex.Lock()
+	defer f.ImageHistoryCall.mutex.Unlock()
+	f.ImageHistoryCall.CallCount++
+	f.ImageHistoryCall.Receives.Context = param1
+	f.ImageHistoryCall.Receives.String = param2
+	if f.ImageHistoryCall.Stub != nil {
+		return f.ImageHistoryCall.Stub(param1, param2)
+	}
+	return f.ImageHistoryCall.Returns.HistoryResponseItemSlice, f.ImageHistoryCall.Returns.Error
+}
 func (f *DockerDaemonClient) ImageInspectWithRaw(param1 context.Context, param2 string) (types.ImageInspect, []byte, error) {
 	f.ImageInspectWithRawCall.mutex.Lock()
 	defer f.ImageInspectWithRawCall.mutex.Unlock()
