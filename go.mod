@@ -6,7 +6,7 @@ toolchain go1.21.1
 
 require (
 	github.com/ForestEckhardt/freezer v0.0.12
-	github.com/docker/docker v25.0.5+incompatible
+	github.com/docker/docker v26.0.1+incompatible
 	github.com/google/go-containerregistry v0.14.0
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.30.0
@@ -41,6 +41,7 @@ require (
 	github.com/klauspost/compress v1.16.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/sys/user v0.1.0 // indirect
