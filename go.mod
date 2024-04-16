@@ -2,8 +2,6 @@ module github.com/paketo-buildpacks/occam
 
 go 1.21
 
-toolchain go1.21.1
-
 require (
 	github.com/ForestEckhardt/freezer v0.0.12
 	github.com/docker/docker v26.0.1+incompatible
