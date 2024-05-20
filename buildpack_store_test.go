@@ -21,21 +21,79 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 		fakeRemoteFetcher *fakes.RemoteFetcher
 		fakeLocalFetcher  *fakes.LocalFetcher
 		fakeCacheManager  *fakes.CacheManager
+		fakeDockerPull    *fakes.BPStoreDockerPull
 	)
 
 	it.Before(func() {
 		fakeRemoteFetcher = &fakes.RemoteFetcher{}
 		fakeLocalFetcher = &fakes.LocalFetcher{}
 		fakeCacheManager = &fakes.CacheManager{}
+		fakeDockerPull = &fakes.BPStoreDockerPull{}
 
 		buildpackStore = occam.NewBuildpackStore()
 
 		buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
 			WithRemoteFetcher(fakeRemoteFetcher).
-			WithCacheManager(fakeCacheManager)
+			WithCacheManager(fakeCacheManager).
+			WithOCIFetcher(fakeDockerPull)
 	})
 
 	when("getting an online buildpack", func() {
+		when("from a docker uri", func() {
+			it("returns the URI to the OCI image", func() {
+				local_url, err := buildpackStore.Get.
+					Execute("docker://some-image:tag")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(local_url).To(Equal("docker://some-image:tag"))
+
+				Expect(fakeDockerPull.ExecuteCall.CallCount).To(Equal(1))
+				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("docker://some-image:tag"))
+
+				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(0))
+				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(0))
+
+				Expect(fakeRemoteFetcher.GetCall.CallCount).To(Equal(0))
+				Expect(fakeLocalFetcher.GetCall.CallCount).To(Equal(0))
+			})
+
+			it("ignores the online/offline flags", func() {
+				local_url, err := buildpackStore.Get.
+					WithOfflineDependencies().
+					Execute("docker://some-image:tag")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(local_url).To(Equal("docker://some-image:tag"))
+
+				Expect(fakeDockerPull.ExecuteCall.CallCount).To(Equal(1))
+				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("docker://some-image:tag"))
+
+				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(0))
+				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(0))
+
+				Expect(fakeRemoteFetcher.GetCall.CallCount).To(Equal(0))
+				Expect(fakeLocalFetcher.GetCall.CallCount).To(Equal(0))
+			})
+
+			it("ignores the version flag", func() {
+				local_url, err := buildpackStore.Get.
+					WithVersion("some-version").
+					Execute("docker://some-image:tag")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(local_url).To(Equal("docker://some-image:tag"))
+
+				Expect(fakeDockerPull.ExecuteCall.CallCount).To(Equal(1))
+				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("docker://some-image:tag"))
+
+				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(0))
+				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(0))
+
+				Expect(fakeRemoteFetcher.GetCall.CallCount).To(Equal(0))
+				Expect(fakeLocalFetcher.GetCall.CallCount).To(Equal(0))
+			})
+		})
+
 		when("from a local uri", func() {
 			it.Before(func() {
 				fakeLocalFetcher.GetCall.Returns.String = "/path/to/cool-buildpack/"
@@ -151,6 +209,18 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	when("failure cases", func() {
+		when("attempting to fetch OCI image without OCI fetcher", func() {
+			it.Before(func() {
+				buildpackStore = occam.NewBuildpackStore()
+			})
+
+			it("returns an error", func() {
+				_, err := buildpackStore.Get.Execute("docker://some-image:tag")
+
+				Expect(err).To(MatchError("must provide OCI fetcher to fetch OCI images"))
+			})
+		})
+
 		when("unable to open cacheManager", func() {
 			it.Before(func() {
 				fakeCacheManager.OpenCall.Returns.Error = errors.New("bad bad error")

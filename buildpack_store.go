@@ -32,6 +32,11 @@ type CacheManager interface {
 	Close() error
 }
 
+//go:generate faux --interface BPStoreDockerPull --output fakes/docker_pull.go
+type BPStoreDockerPull interface {
+	Execute(string) error
+}
+
 type BuildpackStore struct {
 	Get BuildpackStoreGet
 }
@@ -71,6 +76,11 @@ func (bs BuildpackStore) WithRemoteFetcher(fetcher RemoteFetcher) BuildpackStore
 	return bs
 }
 
+func (bs BuildpackStore) WithOCIFetcher(fetcher BPStoreDockerPull) BuildpackStore {
+	bs.Get.oci = fetcher
+	return bs
+}
+
 func (bs BuildpackStore) WithCacheManager(manager CacheManager) BuildpackStore {
 	bs.Get.cacheManager = manager
 	return bs
@@ -86,12 +96,20 @@ type BuildpackStoreGet struct {
 	cacheManager CacheManager
 	local        LocalFetcher
 	remote       RemoteFetcher
+	oci          BPStoreDockerPull
 
 	offline bool
 	version string
 }
 
 func (g BuildpackStoreGet) Execute(url string) (string, error) {
+	if strings.HasPrefix(url, "docker://") {
+		if g.oci == nil {
+			return "", fmt.Errorf("must provide OCI fetcher to fetch OCI images")
+		}
+		return url, g.oci.Execute(url)
+	}
+
 	err := g.cacheManager.Open()
 	if err != nil {
 		return "", fmt.Errorf("failed to open cacheManager: %s", err)
