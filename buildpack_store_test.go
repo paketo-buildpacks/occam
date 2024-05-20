@@ -40,15 +40,15 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 
 	when("getting an online buildpack", func() {
 		when("from a docker uri", func() {
-			it("returns the URI to the OCI image", func() {
+			it("returns the URI to the OCI image, stripping the docker:// protocol", func() {
 				local_url, err := buildpackStore.Get.
 					Execute("docker://some-image:tag")
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(local_url).To(Equal("docker://some-image:tag"))
+				Expect(local_url).To(Equal("some-image:tag"))
 
 				Expect(fakeDockerPull.ExecuteCall.CallCount).To(Equal(1))
-				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("docker://some-image:tag"))
+				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("some-image:tag"))
 
 				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(0))
 				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(0))
@@ -63,10 +63,10 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 					Execute("docker://some-image:tag")
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(local_url).To(Equal("docker://some-image:tag"))
+				Expect(local_url).To(Equal("some-image:tag"))
 
 				Expect(fakeDockerPull.ExecuteCall.CallCount).To(Equal(1))
-				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("docker://some-image:tag"))
+				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("some-image:tag"))
 
 				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(0))
 				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(0))
@@ -81,10 +81,10 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 					Execute("docker://some-image:tag")
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(local_url).To(Equal("docker://some-image:tag"))
+				Expect(local_url).To(Equal("some-image:tag"))
 
 				Expect(fakeDockerPull.ExecuteCall.CallCount).To(Equal(1))
-				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("docker://some-image:tag"))
+				Expect(fakeDockerPull.ExecuteCall.Receives.String).To(Equal("some-image:tag"))
 
 				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(0))
 				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(0))

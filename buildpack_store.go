@@ -107,6 +107,7 @@ func (g BuildpackStoreGet) Execute(url string) (string, error) {
 		if g.oci == nil {
 			return "", fmt.Errorf("must provide OCI fetcher to fetch OCI images")
 		}
+		url := strings.TrimPrefix(url, "docker://")
 		return url, g.oci.Execute(url)
 	}
 
