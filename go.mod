@@ -3,7 +3,7 @@ module github.com/paketo-buildpacks/occam
 go 1.18
 
 require (
-	github.com/ForestEckhardt/freezer v0.0.12
+	github.com/ForestEckhardt/freezer v0.1.0
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.26.0
 	github.com/paketo-buildpacks/packit/v2 v2.8.0

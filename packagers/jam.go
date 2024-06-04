@@ -1,8 +1,10 @@
 package packagers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
@@ -18,11 +20,15 @@ type Executable interface {
 // occam.BuildpackStore.WithPackager().
 type Jam struct {
 	executable Executable
+	pack       Executable
+	tempOutput func(dir string, pattern string) (string, error)
 }
 
 func NewJam() Jam {
 	return Jam{
 		executable: pexec.NewExecutable("jam"),
+		pack:       pexec.NewExecutable("pack"),
+		tempOutput: os.MkdirTemp,
 	}
 }
 
@@ -31,11 +37,27 @@ func (j Jam) WithExecutable(executable Executable) Jam {
 	return j
 }
 
+func (j Jam) WithPack(pack Executable) Jam {
+	j.pack = pack
+	return j
+}
+
+func (j Jam) WithTempOutput(tempOutput func(string, string) (string, error)) Jam {
+	j.tempOutput = tempOutput
+	return j
+}
+
 func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
+	jamOutput, err := j.tempOutput("", "")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(jamOutput)
+
 	args := []string{
 		"pack",
 		"--buildpack", filepath.Join(buildpackDir, "buildpack.toml"),
-		"--output", output,
+		"--output", filepath.Join(jamOutput, fmt.Sprintf("%s.tgz", version)),
 		"--version", version,
 	}
 
@@ -43,7 +65,24 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 		args = append(args, "--offline")
 	}
 
-	return j.executable.Execute(pexec.Execution{
+	err = j.executable.Execute(pexec.Execution{
+		Args:   args,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+	})
+	if err != nil {
+		return err
+	}
+
+	args = []string{
+		"buildpack", "package",
+		output,
+		"--path", filepath.Join(jamOutput, fmt.Sprintf("%s.tgz", version)),
+		"--format", "file",
+		"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+	}
+
+	return j.pack.Execute(pexec.Execution{
 		Args:   args,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
