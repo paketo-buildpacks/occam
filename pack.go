@@ -68,23 +68,41 @@ type PackBuild struct {
 	verbose bool
 	noColor bool
 
-	buildpacks    []string
-	network       string
-	builder       string
-	clearCache    bool
-	env           map[string]string
-	trustBuilder  bool
-	pullPolicy    string
-	sbomOutputDir string
-	volumes       []string
-	gid           string
+	buildpacks          []string
+	extensions          []string
+	network             string
+	builder             string
+	clearCache          bool
+	env                 map[string]string
+	trustBuilder        bool
+	pullPolicy          string
+	sbomOutputDir       string
+	volumes             []string
+	gid                 string
+	runImage            string
+	additionalBuildArgs []string
 
 	// TODO: remove after deprecation period
 	noPull bool
 }
 
+func (pb PackBuild) WithAdditionalBuildArgs(args ...string) PackBuild {
+	pb.additionalBuildArgs = append(pb.additionalBuildArgs, args...)
+	return pb
+}
+
+func (pb PackBuild) WithRunImage(runImage string) PackBuild {
+	pb.runImage = runImage
+	return pb
+}
+
 func (pb PackBuild) WithBuildpacks(buildpacks ...string) PackBuild {
 	pb.buildpacks = append(pb.buildpacks, buildpacks...)
+	return pb
+}
+
+func (pb PackBuild) WithExtensions(extensions ...string) PackBuild {
+	pb.extensions = append(pb.extensions, extensions...)
 	return pb
 }
 
@@ -156,6 +174,10 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 		args = append(args, "--buildpack", buildpack)
 	}
 
+	for _, extension := range pb.extensions {
+		args = append(args, "--extension", extension)
+	}
+
 	if pb.network != "" {
 		args = append(args, "--network", pb.network)
 	}
@@ -204,6 +226,12 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 	if pb.gid != "" {
 		args = append(args, "--gid", pb.gid)
 	}
+
+	if pb.runImage != "" {
+		args = append(args, "--run-image", pb.runImage)
+	}
+
+	args = append(args, pb.additionalBuildArgs...)
 
 	buildLogBuffer := bytes.NewBuffer(nil)
 	err := pb.executable.Execute(pexec.Execution{

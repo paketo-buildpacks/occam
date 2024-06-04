@@ -14,7 +14,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18.x
+        go-version: 'stable'
 
     - name: Checkout
       uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: event-payload
         path: ${{ github.event_path }}

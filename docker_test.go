@@ -1,10 +1,18 @@
 package occam_test
 
 import (
+	"bytes"
+	ctx "context"
 	"errors"
 	"fmt"
+	"io"
+	"strings"
 	"testing"
 
+	"github.com/docker/docker/api/types"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/random"
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/paketo-buildpacks/occam"
 	"github.com/paketo-buildpacks/occam/fakes"
 	"github.com/paketo-buildpacks/packit/v2/pexec"
@@ -137,6 +145,17 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 				}))
 			})
 
+			context("when given the optional force setting", func() {
+				it("sets the  force flag on the remove command", func() {
+					err := docker.Image.Remove.WithForce().Execute("some-image-id")
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+						"image", "remove", "some-image-id", "--force",
+					}))
+				})
+			})
+
 			context("failure cases", func() {
 				context("when the executable fails", func() {
 					it.Before(func() {
@@ -151,6 +170,67 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 						Expect(err).To(MatchError("failed to remove docker image: exit status 1: Error: No such image: some-image-id"))
 					})
 				})
+			})
+		})
+
+		context("Tag", func() {
+			it("Tags the image with the target name", func() {
+				err := docker.Image.Tag.Execute("some-image-id", "new-image-id")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"image", "tag", "some-image-id", "new-image-id",
+				}))
+			})
+
+			context("failure cases", func() {
+				context("when the executable fails", func() {
+					it.Before(func() {
+						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+							fmt.Fprintln(execution.Stderr, "Error: No such image: some-image-id")
+							return errors.New("exit status 1")
+						}
+					})
+
+					it("returns an error", func() {
+						err := docker.Image.Tag.Execute("some-image-id", "some-other-id")
+						Expect(err).To(MatchError("failed to tag docker image: exit status 1: Error: No such image: some-image-id"))
+					})
+				})
+			})
+		})
+
+		context("ExportToOCI", func() {
+			it("Exports Docker image as v1.Image", func() {
+				fakeImg, err := random.Image(1, 5)
+				Expect(err).NotTo(HaveOccurred())
+
+				fakeImgDigest, err := fakeImg.Digest()
+				Expect(err).NotTo(HaveOccurred())
+
+				mockClient := &fakes.DockerDaemonClient{}
+				mockClient.ImageInspectWithRawCall.Stub = func(_ ctx.Context, s string) (types.ImageInspect, []byte, error) {
+					return types.ImageInspect{
+						ID: fakeImgDigest.String(),
+					}, nil, nil
+				}
+				mockClient.ImageSaveCall.Stub = func(ctx ctx.Context, s []string) (io.ReadCloser, error) {
+					buf := bytes.NewBuffer(nil)
+					ref, _ := name.ParseReference("some-image-id")
+					err = tarball.Write(ref, fakeImg, buf)
+					Expect(err).NotTo(HaveOccurred())
+					return io.NopCloser(buf), nil
+				}
+				img, err := docker.Image.ExportToOCI.WithClient(mockClient).Execute("some-image-id")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(img).NotTo(BeNil())
+				digest, err := img.Digest()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(digest.String()).To(Equal(fakeImgDigest.String()))
+
+				layers, err := img.Layers()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(layers).To(HaveLen(5))
 			})
 		})
 	})
@@ -861,13 +941,61 @@ func testDocker(t *testing.T, context spec.G, it spec.S) {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-						"container",
-						"exec",
+						"container", "exec",
 						"abc123",
-						"/bin/bash",
-						"-c",
-						"echo hi",
+						"/bin/bash", "-c", "echo hi",
 					}))
+				})
+
+				context("WithStdin", func() {
+					it("passes the reader as stdin to the underlying docker exec call", func() {
+						err := docker.Container.Exec.
+							WithStdin(strings.NewReader("goodbye moon\nhello world")).
+							Execute("abc123", "grep", "hello")
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+							"container", "exec",
+							"abc123",
+							"grep", "hello",
+						}))
+
+						content, err := io.ReadAll(executable.ExecuteCall.Receives.Execution.Stdin)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(content)).To(Equal("goodbye moon\nhello world"))
+					})
+				})
+
+				context("WithUser", func() {
+					it("sets the --user flag", func() {
+						err := docker.Container.Exec.
+							WithUser("some-user:some-group").
+							Execute("abc123", "echo", "hello")
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+							"container", "exec",
+							"--user", "some-user:some-group",
+							"abc123",
+							"echo", "hello",
+						}))
+					})
+				})
+
+				context("WithInteractive", func() {
+					it("sets the --interactive flag", func() {
+						err := docker.Container.Exec.
+							WithInteractive().
+							Execute("abc123", "echo", "hello")
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+							"container", "exec",
+							"--interactive",
+							"abc123",
+							"echo", "hello",
+						}))
+					})
 				})
 
 				context("failure cases", func() {
