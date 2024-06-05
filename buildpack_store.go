@@ -41,7 +41,6 @@ func NewBuildpackStore() BuildpackStore {
 	cacheManager := freezer.NewCacheManager(filepath.Join(os.Getenv("HOME"), ".freezer-cache"))
 	releaseService := github.NewReleaseService(github.NewConfig("https://api.github.com", gitToken))
 	packager := packagers.NewJam()
-	fileSystem := freezer.NewFileSystem(os.MkdirTemp)
 	namer := freezer.NewNameGenerator()
 
 	return BuildpackStore{
@@ -54,7 +53,6 @@ func NewBuildpackStore() BuildpackStore {
 			remote: freezer.NewRemoteFetcher(
 				&cacheManager,
 				releaseService, packager,
-				fileSystem,
 			),
 			cacheManager: &cacheManager,
 		},
