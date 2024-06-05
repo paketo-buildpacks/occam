@@ -55,6 +55,8 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 	}
 	defer os.RemoveAll(jamOutput)
 
+	buildpackTarballPath := filepath.Join(jamOutput, fmt.Sprintf("%s.tgz", version))
+
 	extensionTomlPath := filepath.Join(buildpackDir, "extension.toml")
 
 	buildpackOrExtensionToml := "buildpack.toml"
@@ -68,7 +70,7 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 	args := []string{
 		"pack",
 		command, filepath.Join(buildpackDir, buildpackOrExtensionToml),
-		"--output", filepath.Join(jamOutput, fmt.Sprintf("%s.tgz", version)),
+		"--output", buildpackTarballPath,
 		"--version", version,
 	}
 
@@ -88,7 +90,7 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 	args = []string{
 		"buildpack", "package",
 		output,
-		"--path", filepath.Join(jamOutput, fmt.Sprintf("%s.tgz", version)),
+		"--path", buildpackTarballPath,
 		"--format", "file",
 		"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
