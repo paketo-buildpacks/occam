@@ -6,7 +6,7 @@ toolchain go1.21.10
 
 require (
 	github.com/ForestEckhardt/freezer v0.1.0
-	github.com/docker/docker v26.1.3+incompatible
+	github.com/docker/docker v26.1.4+incompatible
 	github.com/google/go-containerregistry v0.19.1
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.33.1
