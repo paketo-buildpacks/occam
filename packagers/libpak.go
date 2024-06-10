@@ -73,7 +73,7 @@ func (l Libpak) Execute(buildpackDir, output, version string, cached bool) error
 		output,
 		"--path", libpakOutput,
 		"--format", "file",
-		"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+		"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 	}
 
 	return l.pack.Execute(pexec.Execution{
