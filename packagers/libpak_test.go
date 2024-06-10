@@ -52,7 +52,7 @@ func testLibpak(t *testing.T, context spec.G, it spec.S) {
 				"some-output-dir",
 				"--path", "some-libpak-output-dir",
 				"--format", "file",
-				"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+				"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 			}))
 		})
 
@@ -72,7 +72,7 @@ func testLibpak(t *testing.T, context spec.G, it spec.S) {
 					"some-output-dir",
 					"--path", "some-libpak-output-dir",
 					"--format", "file",
-					"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 				}))
 			})
 		})

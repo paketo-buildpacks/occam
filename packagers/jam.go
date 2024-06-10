@@ -92,7 +92,7 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 		output,
 		"--path", buildpackTarballPath,
 		"--format", "file",
-		"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+		"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 	}
 
 	return j.pack.Execute(pexec.Execution{

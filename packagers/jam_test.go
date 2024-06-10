@@ -55,7 +55,7 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 				"some-output",
 				"--path", filepath.Join("some-jam-output", "some-version.tgz"),
 				"--format", "file",
-				"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+				"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 			}))
 		})
 
@@ -77,7 +77,7 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 					"some-output",
 					"--path", filepath.Join("some-jam-output", "some-version.tgz"),
 					"--format", "file",
-					"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 				}))
 			})
 		})
@@ -115,7 +115,7 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 					"some-output",
 					"--path", filepath.Join("some-jam-output", "some-version.tgz"),
 					"--format", "file",
-					"--target", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 				}))
 			})
 		})
