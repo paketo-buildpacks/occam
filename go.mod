@@ -7,7 +7,7 @@ toolchain go1.22.4
 require (
 	github.com/ForestEckhardt/freezer v0.1.0
 	github.com/docker/docker v26.1.4+incompatible
-	github.com/google/go-containerregistry v0.19.1
+	github.com/google/go-containerregistry v0.19.2
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.33.1
 	github.com/paketo-buildpacks/packit/v2 v2.14.0
