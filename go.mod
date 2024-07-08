@@ -2,7 +2,7 @@ module github.com/paketo-buildpacks/occam
 
 go 1.21
 
-toolchain go1.22.4
+toolchain go1.22.5
 
 require (
 	github.com/ForestEckhardt/freezer v0.1.0
