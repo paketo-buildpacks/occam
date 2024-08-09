@@ -8,7 +8,7 @@ require (
 	github.com/google/go-containerregistry v0.20.2
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.34.1
-	github.com/paketo-buildpacks/packit/v2 v2.14.0
+	github.com/paketo-buildpacks/packit/v2 v2.14.1
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 )
@@ -27,7 +27,7 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.5 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
