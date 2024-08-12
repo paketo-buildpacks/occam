@@ -1,6 +1,6 @@
 module github.com/paketo-buildpacks/occam
 
-go 1.22.5
+go 1.22.6
 
 require (
 	github.com/ForestEckhardt/freezer v0.1.0
