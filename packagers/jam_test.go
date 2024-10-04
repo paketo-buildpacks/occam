@@ -53,7 +53,6 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 			Expect(pack.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 				"buildpack", "package",
 				"some-output",
-				"--path", filepath.Join("some-jam-output", "some-version.tgz"),
 				"--format", "file",
 				"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 			}))
@@ -75,7 +74,6 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 				Expect(pack.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 					"buildpack", "package",
 					"some-output",
-					"--path", filepath.Join("some-jam-output", "some-version.tgz"),
 					"--format", "file",
 					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 				}))
@@ -113,7 +111,6 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 				Expect(pack.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 					"buildpack", "package",
 					"some-output",
-					"--path", filepath.Join("some-jam-output", "some-version.tgz"),
 					"--format", "file",
 					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 				}))
