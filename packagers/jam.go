@@ -87,17 +87,40 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 		return err
 	}
 
+	tmpDir, _ := os.MkdirTemp("", "build")
+	if _, err := os.Stat(buildpackTarballPath); err == nil {
+		doUnzip := pexec.NewExecutable("tar")
+		args = []string{
+			"-xvf",
+			buildpackTarballPath,
+		}
+		err = doUnzip.Execute(pexec.Execution{
+			Dir:    tmpDir,
+			Args:   args,
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+		})
+		if err != nil {
+			return err
+		}
+
+	}
+
 	args = []string{
 		"buildpack", "package",
 		output,
-		"--path", buildpackTarballPath,
 		"--format", "file",
 		"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 	}
 
-	return j.pack.Execute(pexec.Execution{
+	err = j.pack.Execute(pexec.Execution{
+		Dir:    tmpDir,
 		Args:   args,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 	})
+
+	os.RemoveAll(tmpDir)
+
+	return err
 }
