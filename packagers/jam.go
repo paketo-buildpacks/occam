@@ -106,11 +106,21 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 
 	}
 
-	args = []string{
-		"buildpack", "package",
-		output,
-		"--format", "file",
-		"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
+	if ( command == "--buildpack") {
+		args = []string{
+			"buildpack", "package",
+			output,
+			"--format", "file",
+			"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
+		}
+	} else {
+		// pack extension does not yet support multi-arch
+		// update to inclue --target once it does
+		args = []string{
+			"extension", "package",
+			output,
+			"--format", "file",
+		}
 	}
 
 	err = j.pack.Execute(pexec.Execution{
