@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
+	"path/filepath"
 
 	"github.com/onsi/gomega/types"
 )
@@ -20,8 +21,16 @@ type haveFileMatcher struct {
 
 func (m haveFileMatcher) Match(actual interface{}) (bool, error) {
 	return matchImage(m.path, actual, func(hdr *tar.Header, _ io.Reader) (bool, error) {
-		return hdr.Typeflag == tar.TypeReg, nil
+		if hdr.Typeflag == tar.TypeSymlink {
+			followSymlinkPath := filepath.Join(filepath.Dir(hdr.Name), hdr.Linkname)
+			return matchImage(followSymlinkPath, actual, isRegularFile)
+		}
+		return isRegularFile(hdr, nil)
 	})
+}
+
+func isRegularFile(hdr *tar.Header, _ io.Reader) (bool, error) {
+	return hdr.Typeflag == tar.TypeReg, nil
 }
 
 func (m haveFileMatcher) FailureMessage(actual interface{}) string {

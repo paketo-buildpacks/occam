@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
+	"path/filepath"
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/onsi/gomega"
@@ -20,16 +21,22 @@ func HaveFileWithContent(path, matcher interface{}) types.GomegaMatcher {
 type haveFileWithContentMatcher struct {
 	path          interface{}
 	matcher       interface{}
+	actual        interface{}
 	failedMatcher types.GomegaMatcher
 	foundContent  string
 }
 
 func (m *haveFileWithContentMatcher) Match(actual interface{}) (bool, error) {
+	m.actual = actual
+	return matchImage(m.path, actual, m.matchFileContent)
+}
+
+func (m *haveFileWithContentMatcher) getMatcher() (types.GomegaMatcher, error) {
 	matcher, ok := m.matcher.(types.GomegaMatcher)
 	if !ok {
 		str, ok := m.matcher.(string)
 		if !ok {
-			return false, fmt.Errorf("expected must be a <string> or matcher, received %#v", m.matcher)
+			return nil, fmt.Errorf("expected must be a <string> or matcher, received %#v", m.matcher)
 		}
 
 		matcher = gomega.Equal(str)
@@ -37,26 +44,36 @@ func (m *haveFileWithContentMatcher) Match(actual interface{}) (bool, error) {
 
 	m.failedMatcher = m
 
-	return matchImage(m.path, actual, func(hdr *tar.Header, tr io.Reader) (bool, error) {
-		if hdr.Typeflag != tar.TypeReg {
-			m.failedMatcher = m
-			return false, nil
-		}
+	return matcher, nil
+}
 
-		b, err := io.ReadAll(tr)
-		if err != nil {
-			return false, err
-		}
+func (m *haveFileWithContentMatcher) matchFileContent(hdr *tar.Header, tr io.Reader) (bool, error) {
+	matcher, err := m.getMatcher()
+	if err != nil {
+		return false, err
+	}
+	if hdr.Typeflag == tar.TypeSymlink {
+		followSymlinkPath := filepath.Join(filepath.Dir(hdr.Name), hdr.Linkname)
+		return matchImage(followSymlinkPath, m.actual, m.matchFileContent)
+	}
+	if hdr.Typeflag != tar.TypeReg {
+		m.failedMatcher = m
+		return false, nil
+	}
 
-		m.foundContent = string(b)
-		match, err := matcher.Match(m.foundContent)
-		if err != nil {
-			return false, err
-		}
+	b, err := io.ReadAll(tr)
+	if err != nil {
+		return false, err
+	}
 
-		m.failedMatcher = matcher
-		return match, nil
-	})
+	m.foundContent = string(b)
+	match, err := matcher.Match(m.foundContent)
+	if err != nil {
+		return false, err
+	}
+
+	m.failedMatcher = matcher
+	return match, nil
 }
 
 func (m *haveFileWithContentMatcher) name(actual interface{}) string {
