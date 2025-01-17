@@ -31,7 +31,7 @@ func testHaveFileWithContent(t *testing.T, context spec.G, it spec.S) {
 
 	context("when the file exists", func() {
 		it.Before(func() {
-			matcher = matchers.HaveFileWithContent("/etc/os-release", ContainSubstring("VERSION"))
+			matcher = matchers.HaveFileWithContent("/etc/group", ContainSubstring("root"))
 		})
 
 		it("matches", func() {
@@ -42,7 +42,7 @@ func testHaveFileWithContent(t *testing.T, context spec.G, it spec.S) {
 
 		context("when the content doesn't match", func() {
 			it.Before(func() {
-				matcher = matchers.HaveFileWithContent("/etc/os-release", ContainSubstring("no such content"))
+				matcher = matchers.HaveFileWithContent("/etc/group", ContainSubstring("no such content"))
 			})
 
 			it("does not match", func() {

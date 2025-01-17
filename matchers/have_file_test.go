@@ -31,7 +31,7 @@ func testHaveFile(t *testing.T, context spec.G, it spec.S) {
 
 	context("when the file exists", func() {
 		it.Before(func() {
-			matcher = matchers.HaveFile("/etc/os-release")
+			matcher = matchers.HaveFile("/etc/group")
 		})
 
 		it("matches", func() {
