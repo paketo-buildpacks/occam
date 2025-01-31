@@ -53,6 +53,30 @@ func testHaveFileWithContent(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
+	context("when the file exists as a symlink", func() {
+		it.Before(func() {
+			matcher = matchers.HaveFileWithContent("/etc/os-release", ContainSubstring("VERSION"))
+		})
+
+		it("matches", func() {
+			match, err := matcher.Match(image)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(match).To(BeTrue())
+		})
+
+		context("when the content doesn't match", func() {
+			it.Before(func() {
+				matcher = matchers.HaveFileWithContent("/etc/group", ContainSubstring("no such content"))
+			})
+
+			it("does not match", func() {
+				match, err := matcher.Match(image)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(match).To(BeFalse())
+			})
+		})
+	})
+
 	context("when the file does not exist", func() {
 		it.Before(func() {
 			matcher = matchers.HaveFileWithContent("/no/such/directory", "no such content")
