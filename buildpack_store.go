@@ -80,6 +80,13 @@ func (bs BuildpackStore) WithPackager(packager freezer.Packager) BuildpackStore 
 	return bs
 }
 
+func (bs BuildpackStore) WithTarget(target string) BuildpackStore {
+	targetExploded := strings.Split(target, "/")
+	bs.Get.platform = targetExploded[0]
+	bs.Get.arch = targetExploded[1]
+	return bs
+}
+
 type BuildpackStoreGet struct {
 	cacheManager CacheManager
 	local        LocalFetcher
@@ -87,6 +94,9 @@ type BuildpackStoreGet struct {
 
 	offline bool
 	version string
+
+	platform string
+	arch     string
 }
 
 func (g BuildpackStoreGet) Execute(url string) (string, error) {
@@ -102,7 +112,12 @@ func (g BuildpackStoreGet) Execute(url string) (string, error) {
 			return "", fmt.Errorf("error incomplete github.com url: %q", url)
 		}
 
-		buildpack := freezer.NewRemoteBuildpack(request[1], request[2])
+		if g.platform == "" || g.arch == "" {
+			g.platform = "linux"
+			g.arch = "amd64"
+		}
+
+		buildpack := freezer.NewRemoteBuildpack(request[1], request[2], g.platform, g.arch)
 		buildpack.Offline = g.offline
 		buildpack.Version = g.version
 
