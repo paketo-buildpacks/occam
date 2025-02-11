@@ -83,8 +83,10 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 				Expect(fakeRemoteFetcher.GetCall.Receives.RemoteBuildpack).To(Equal(freezer.RemoteBuildpack{
 					Org:         "some-org",
 					Repo:        "some-repo",
-					UncachedKey: "some-org:some-repo",
-					CachedKey:   "some-org:some-repo:cached",
+					Platform:    "linux",
+					Arch:        "amd64",
+					UncachedKey: "some-org:some-repo:linux:amd64",
+					CachedKey:   "some-org:some-repo:linux:amd64:cached",
 					Offline:     false,
 					Version:     "some-version",
 				}))
@@ -140,8 +142,10 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 					Expect(fakeRemoteFetcher.GetCall.Receives.RemoteBuildpack).To(Equal(freezer.RemoteBuildpack{
 						Org:         "some-org",
 						Repo:        "some-repo",
-						UncachedKey: "some-org:some-repo",
-						CachedKey:   "some-org:some-repo:cached",
+						Platform:    "linux",
+						Arch:        "amd64",
+						UncachedKey: "some-org:some-repo:linux:amd64",
+						CachedKey:   "some-org:some-repo:linux:amd64:cached",
 						Offline:     true,
 						Version:     "some-version",
 					}))
