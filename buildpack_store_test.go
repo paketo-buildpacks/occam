@@ -29,16 +29,15 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 		fakeCacheManager = &fakes.CacheManager{}
 
 		buildpackStore = occam.NewBuildpackStore()
-
-		buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
-			WithRemoteFetcher(fakeRemoteFetcher).
-			WithCacheManager(fakeCacheManager)
 	})
 
 	when("getting an online buildpack", func() {
 		when("from a local uri", func() {
 			it.Before(func() {
 				fakeLocalFetcher.GetCall.Returns.String = "/path/to/cool-buildpack/"
+				buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+					WithRemoteFetcher(fakeRemoteFetcher).
+					WithCacheManager(fakeCacheManager)
 			})
 			it("returns a local filepath to a buildpack", func() {
 				local_url, err := buildpackStore.Get.
@@ -66,6 +65,9 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 		when("from a github uri", func() {
 			it.Before(func() {
 				fakeRemoteFetcher.GetCall.Returns.String = "/path/to/remote-buildpack/"
+				buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+					WithRemoteFetcher(fakeRemoteFetcher).
+					WithCacheManager(fakeCacheManager)
 			})
 
 			it("returns a local filepath to buildpack", func() {
@@ -93,10 +95,47 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 			})
 		})
 
+		when("from a github uri with specific arch and platform", func() {
+			it.Before(func() {
+				fakeRemoteFetcher.GetCall.Returns.String = "/path/to/remote-buildpack/"
+				buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+					WithRemoteFetcher(fakeRemoteFetcher).
+					WithCacheManager(fakeCacheManager).
+					WithTarget("linux/arm64")
+			})
+
+			it("returns a local filepath to buildpack", func() {
+				local_url, err := buildpackStore.Get.
+					WithVersion("some-version").
+					Execute("github.com/some-org/some-repo")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeCacheManager.OpenCall.CallCount).To(Equal(1))
+				Expect(fakeCacheManager.CloseCall.CallCount).To(Equal(1))
+
+				Expect(local_url).To(Equal("/path/to/remote-buildpack/"))
+				Expect(fakeLocalFetcher.GetCall.CallCount).To(Equal(0))
+				Expect(fakeRemoteFetcher.GetCall.CallCount).To(Equal(1))
+				Expect(fakeRemoteFetcher.GetCall.Receives.RemoteBuildpack).To(Equal(freezer.RemoteBuildpack{
+					Org:         "some-org",
+					Repo:        "some-repo",
+					Platform:    "linux",
+					Arch:        "arm64",
+					UncachedKey: "some-org:some-repo:linux:arm64",
+					CachedKey:   "some-org:some-repo:linux:arm64:cached",
+					Offline:     false,
+					Version:     "some-version",
+				}))
+			})
+		})
+
 		when("Getting an offline buildpack", func() {
 			when("from a local uri", func() {
 				it.Before(func() {
 					fakeLocalFetcher.GetCall.Returns.String = "/path/to/cool-buildpack/"
+					buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+						WithRemoteFetcher(fakeRemoteFetcher).
+						WithCacheManager(fakeCacheManager)
 				})
 
 				it("returns a local filepath to a buildpack", func() {
@@ -124,6 +163,9 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 			when("from a github uri", func() {
 				it.Before(func() {
 					fakeRemoteFetcher.GetCall.Returns.String = "/path/to/remote-buildpack/"
+					buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+						WithRemoteFetcher(fakeRemoteFetcher).
+						WithCacheManager(fakeCacheManager)
 				})
 
 				it("returns a local filepath to a buildpack", func() {
@@ -158,6 +200,9 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 		when("unable to open cacheManager", func() {
 			it.Before(func() {
 				fakeCacheManager.OpenCall.Returns.Error = errors.New("bad bad error")
+				buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+					WithRemoteFetcher(fakeRemoteFetcher).
+					WithCacheManager(fakeCacheManager)
 			})
 
 			it("returns an error", func() {
@@ -169,6 +214,9 @@ func testBuildpackStore(t *testing.T, when spec.G, it spec.S) {
 
 		when("given an incomplete github.com url", func() {
 			it("returns an error", func() {
+				buildpackStore = buildpackStore.WithLocalFetcher(fakeLocalFetcher).
+					WithRemoteFetcher(fakeRemoteFetcher).
+					WithCacheManager(fakeCacheManager)
 				incompleteURL := "github.com/incomplete"
 				_, err := buildpackStore.Get.Execute(incompleteURL)
 				Expect(err).To(MatchError("error incomplete github.com url: \"github.com/incomplete\""))
