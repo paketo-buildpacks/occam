@@ -41,6 +41,18 @@ func testHaveFile(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
+	context("when the file exists as a symlink", func() {
+		it.Before(func() {
+			matcher = matchers.HaveFile("/etc/os-release")
+		})
+
+		it("matches", func() {
+			match, err := matcher.Match(image)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(match).To(BeTrue())
+		})
+	})
+
 	context("when the file does not exist", func() {
 		it.Before(func() {
 			matcher = matchers.HaveFile("/no/such/file")
