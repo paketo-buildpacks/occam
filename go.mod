@@ -3,7 +3,7 @@ module github.com/paketo-buildpacks/occam
 go 1.23.0
 
 require (
-	github.com/ForestEckhardt/freezer v0.1.0
+	github.com/ForestEckhardt/freezer v0.1.1
 	github.com/docker/docker v26.1.5+incompatible
 	github.com/google/go-containerregistry v0.20.2
 	github.com/oklog/ulid v1.3.1
