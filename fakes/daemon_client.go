@@ -46,10 +46,10 @@ type DockerDaemonClient struct {
 			Bool    bool
 		}
 		Returns struct {
-			ImageLoadResponse image.LoadResponse
+			ImageLoadResponse types.ImageLoadResponse
 			Error             error
 		}
-		Stub func(context.Context, io.Reader, bool) (image.LoadResponse, error)
+		Stub func(context.Context, io.Reader, bool) (types.ImageLoadResponse, error)
 	}
 	ImageSaveCall struct {
 		mutex     sync.Mutex
@@ -109,7 +109,7 @@ func (f *DockerDaemonClient) ImageInspectWithRaw(param1 context.Context, param2 
 	}
 	return f.ImageInspectWithRawCall.Returns.ImageInspect, f.ImageInspectWithRawCall.Returns.ByteSlice, f.ImageInspectWithRawCall.Returns.Error
 }
-func (f *DockerDaemonClient) ImageLoad(param1 context.Context, param2 io.Reader, param3 bool) (image.LoadResponse, error) {
+func (f *DockerDaemonClient) ImageLoad(param1 context.Context, param2 io.Reader, param3 bool) (types.ImageLoadResponse, error) {
 	f.ImageLoadCall.mutex.Lock()
 	defer f.ImageLoadCall.mutex.Unlock()
 	f.ImageLoadCall.CallCount++
