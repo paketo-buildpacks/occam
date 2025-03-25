@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 
 	"github.com/paketo-buildpacks/packit/v2/pexec"
@@ -231,6 +232,9 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 		args = append(args, "--run-image", pb.runImage)
 	}
 
+	packEnv := os.Environ()
+	packEnv = append(packEnv, fmt.Sprintf("PACK_VOLUME_KEY=%s-volume", name))
+
 	args = append(args, pb.additionalBuildArgs...)
 
 	buildLogBuffer := bytes.NewBuffer(nil)
@@ -238,6 +242,7 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 		Args:   args,
 		Stdout: buildLogBuffer,
 		Stderr: buildLogBuffer,
+		Env:    packEnv,
 	})
 	if err != nil {
 		return Image{}, buildLogBuffer, fmt.Errorf("failed to pack build: %w\n\nOutput:\n%s", err, buildLogBuffer)
