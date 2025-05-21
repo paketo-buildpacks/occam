@@ -4,13 +4,13 @@ go 1.24.1
 
 require (
 	github.com/ForestEckhardt/freezer v0.1.1
-	github.com/docker/docker v27.5.0+incompatible
+	github.com/docker/docker v28.0.1+incompatible
 	github.com/google/go-containerregistry v0.20.3
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.37.0
 	github.com/paketo-buildpacks/packit/v2 v2.19.0
 	github.com/sclevine/spec v1.4.0
-	github.com/testcontainers/testcontainers-go v0.35.0
+	github.com/testcontainers/testcontainers-go v0.37.0
 )
 
 require (
@@ -27,6 +27,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -50,8 +51,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
-	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
-	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
