@@ -5,7 +5,7 @@ go 1.24.3
 require (
 	github.com/ForestEckhardt/freezer v0.1.1
 	github.com/docker/docker v28.1.1+incompatible
-	github.com/google/go-containerregistry v0.20.4
+	github.com/google/go-containerregistry v0.20.5
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.37.0
 	github.com/paketo-buildpacks/packit/v2 v2.20.0
