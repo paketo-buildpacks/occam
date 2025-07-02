@@ -31,6 +31,26 @@ buildpack, err = buildpackStore.Get.
 Expect(err).NotTo(HaveOccurred())
 ```
 
+#### Important update: Libpak v2.0.0+
+
+As of version `2.0.0` of [libpak](https://github.com/paketo-buildpacks/libpak), the implementation of `create-package` has changed and instead the binaries from [libpak tools](https://github.com/paketo-buildpacks/libpak-tools) are being used.
+For backward compatibility and easier transition to libpak `2.0.0`, a new packager was introduced:
+
+The new packager is named `NewLibpakTools` and you can use it in the same way as `NewLibpak` by calling it like this:
+
+```go
+buildpackStore := occam.NewBuildpackStore().
+    WithPackager(packagers.NewLibpakTools())
+```
+
+In both cases the `libpak` need to be installed and available in your environemt. For `libpak` prior to `2.0.0` you can find the installation process on below url:
+
+- https://github.com/paketo-buildpacks/github-config/blob/12ac77d11b435250bd0934c0d59c9c41eaa2ce01/implementation/scripts/.util/tools.sh#L259-L284
+
+For versions `2.0.0` and above you can find the installation process on below url:
+
+- https://github.com/paketo-buildpacks/github-config/blob/12ac77d11b435250bd0934c0d59c9c41eaa2ce01/implementation/scripts/.util/tools.sh#L201-L257
+
 ### Test a buildpack
 
 Initialize helpers:
