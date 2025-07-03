@@ -8,7 +8,7 @@ require (
 	github.com/oklog/ulid v1.3.1
 	github.com/onsi/gomega v1.37.0
 	github.com/paketo-buildpacks/freezer v0.2.0
-	github.com/paketo-buildpacks/packit/v2 v2.20.0
+	github.com/paketo-buildpacks/packit/v2 v2.21.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.37.0
 )
