@@ -3,7 +3,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/ForestEckhardt/freezer"
+	"github.com/paketo-buildpacks/freezer"
 )
 
 type LocalFetcher struct {
