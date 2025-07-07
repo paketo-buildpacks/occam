@@ -10,6 +10,7 @@ import (
 func TestUnitPackagers(t *testing.T) {
 	suite := spec.New("packagers", spec.Report(report.Terminal{}))
 	suite("Libpak", testLibpak)
+	suite("LibpakTools", testLibpakTools)
 	suite("Jam", testJam)
 	suite.Run(t)
 }
