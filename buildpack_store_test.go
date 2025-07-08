@@ -6,7 +6,7 @@ import (
 
 	"github.com/sclevine/spec"
 
-	"github.com/ForestEckhardt/freezer"
+	"github.com/paketo-buildpacks/freezer"
 
 	"github.com/paketo-buildpacks/occam"
 	"github.com/paketo-buildpacks/occam/fakes"
