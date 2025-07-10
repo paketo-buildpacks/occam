@@ -3,7 +3,7 @@ module github.com/paketo-buildpacks/occam
 go 1.24.4
 
 require (
-	github.com/docker/docker v28.3.1+incompatible
+	github.com/docker/docker v28.3.2+incompatible
 	github.com/google/go-containerregistry v0.20.6
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.37.0
