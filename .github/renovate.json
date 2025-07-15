@@ -1,6 +1,0 @@
-{
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "github>paketo-buildpacks/github-config//renovate/renovate-tooling"
-    ]
-}
