@@ -3,8 +3,6 @@ package packagers_test
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -14,7 +12,8 @@ import (
 	"github.com/sclevine/spec"
 )
 
-func testJam(t *testing.T, context spec.G, it spec.S) {
+func testLibpakTools(t *testing.T, context spec.G, it spec.S) {
+
 	var (
 		Expect = NewWithT(t).Expect
 
@@ -23,7 +22,7 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 
 		tempOutput func(string, string) (string, error)
 
-		packager packagers.Jam
+		packager packagers.LibpakTools
 	)
 
 	it.Before(func() {
@@ -31,88 +30,53 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 		pack = &fakes.Executable{}
 
 		tempOutput = func(string, string) (string, error) {
-			return "some-jam-output", nil
+			return "some-libpak-output-dir", nil
 		}
 
-		packager = packagers.NewJam().WithExecutable(executable).WithPack(pack).WithTempOutput(tempOutput)
-
+		packager = packagers.NewLibpakTools().WithExecutable(executable).WithPack(pack).WithTempOutput(tempOutput)
 	})
 
 	context("Execute", func() {
-		it("creates a correct pexec.Execution", func() {
-			err := packager.Execute("some-buildpack-dir", "some-output", "some-version", false)
-			Expect(err).NotTo(HaveOccurred())
+		it("calls the executable with the correct arguments", func() {
+			err := packager.Execute("some-buildpack-dir", "some-output-dir", "some-version", false)
 
+			Expect(err).NotTo(HaveOccurred())
 			Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-				"pack",
-				"--buildpack", filepath.Join("some-buildpack-dir", "buildpack.toml"),
-				"--output", filepath.Join("some-jam-output", "some-version.tgz"),
+				"package", "compile",
+				"--source", "some-buildpack-dir",
+				"--destination", "some-libpak-output-dir",
 				"--version", "some-version",
 			}))
+			Expect(executable.ExecuteCall.Receives.Execution.Dir).To(Equal("some-buildpack-dir"))
 
 			Expect(pack.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 				"buildpack", "package",
-				"some-output",
+				"some-output-dir",
+				"--path", "some-libpak-output-dir",
 				"--format", "file",
 				"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 			}))
 		})
 
 		context("when packaging with offline dependencies", func() {
-			it("creates a correct pexec.Execution", func() {
-				err := packager.Execute("some-buildpack-dir", "some-output", "some-version", true)
-				Expect(err).NotTo(HaveOccurred())
+			it("adds the appropriate flag to the packager args", func() {
+				err := packager.Execute("some-buildpack-dir", "some-output-dir", "some-version", true)
 
+				Expect(err).NotTo(HaveOccurred())
 				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-					"pack",
-					"--buildpack", filepath.Join("some-buildpack-dir", "buildpack.toml"),
-					"--output", filepath.Join("some-jam-output", "some-version.tgz"),
+					"package", "compile",
+					"--source", "some-buildpack-dir",
+					"--destination", "some-libpak-output-dir",
 					"--version", "some-version",
-					"--offline",
+					"--include-dependencies",
 				}))
 
 				Expect(pack.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 					"buildpack", "package",
-					"some-output",
+					"some-output-dir",
+					"--path", "some-libpak-output-dir",
 					"--format", "file",
 					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
-				}))
-			})
-		})
-
-		context("when packaging a stack extension", func() {
-			var extensionDir string
-
-			it.Before(func() {
-				var err error
-				extensionDir, err = os.MkdirTemp("", "")
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = os.Create(filepath.Join(extensionDir, "extension.toml"))
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			it.After(func() {
-				Expect(os.RemoveAll(extensionDir)).To(Succeed())
-			})
-
-			it("creates a correct pexec.Execution", func() {
-				err := packager.Execute(extensionDir, "some-output", "some-version", true)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-					"pack",
-					"--extension", filepath.Join(extensionDir, "extension.toml"),
-					"--output", filepath.Join("some-jam-output", "some-version.tgz"),
-					"--version", "some-version",
-					"--offline",
-				}))
-
-				Expect(pack.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
-					"extension", "package",
-					"some-output",
-					"--format", "file",
-					"--target", "linux/amd64",
 				}))
 			})
 		})
@@ -132,13 +96,13 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 				})
 			})
 
-			context("when the jam execution returns an error", func() {
+			context("when the libpak execution returns an error", func() {
 				it.Before(func() {
-					executable.ExecuteCall.Returns.Error = errors.New("some jam error")
+					executable.ExecuteCall.Returns.Error = errors.New("some libpak error")
 				})
 				it("returns an error", func() {
 					err := packager.Execute("some-buildpack-dir", "some-output", "some-version", true)
-					Expect(err).To(MatchError("some jam error"))
+					Expect(err).To(MatchError("some libpak error"))
 				})
 			})
 

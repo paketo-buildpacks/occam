@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ForestEckhardt/freezer"
-	"github.com/ForestEckhardt/freezer/github"
+	"github.com/paketo-buildpacks/freezer"
+	"github.com/paketo-buildpacks/freezer/github"
 	"github.com/paketo-buildpacks/occam/packagers"
 )
 

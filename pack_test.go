@@ -97,6 +97,13 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
 
+		it("sets PACK_VOLUME_KEY", func() {
+			_, _, err := pack.Build.Execute("myapp", "/some/app/path")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(executable.ExecuteCall.Receives.Execution.Env).To(ContainElement("PACK_VOLUME_KEY=myapp-volume"))
+		})
+
 		context("when given optional buildpacks", func() {
 			it("returns an image with the given name and the build logs", func() {
 				image, logs, err := pack.Build.

@@ -59,17 +59,18 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 
 	extensionTomlPath := filepath.Join(buildpackDir, "extension.toml")
 
-	buildpackOrExtensionToml := "buildpack.toml"
-	command := "--buildpack"
+	var buildpackType string
 
 	if fileExists, err := fs.Exists(extensionTomlPath); fileExists && err == nil {
-		buildpackOrExtensionToml = "extension.toml"
-		command = "--extension"
+		buildpackType = "extension"
+	} else {
+		buildpackType = "buildpack"
 	}
 
 	args := []string{
 		"pack",
-		command, filepath.Join(buildpackDir, buildpackOrExtensionToml),
+		fmt.Sprintf("--%s", buildpackType),
+		filepath.Join(buildpackDir, fmt.Sprintf("%s.toml", buildpackType)),
 		"--output", buildpackTarballPath,
 		"--version", version,
 	}
@@ -106,21 +107,11 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 
 	}
 
-	if ( command == "--buildpack") {
-		args = []string{
-			"buildpack", "package",
-			output,
-			"--format", "file",
-			"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
-		}
-	} else {
-		// pack extension does not yet support multi-arch
-		// update to inclue --target once it does
-		args = []string{
-			"extension", "package",
-			output,
-			"--format", "file",
-		}
+	args = []string{
+		buildpackType, "package",
+		output,
+		"--format", "file",
+		"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 	}
 
 	err = j.pack.Execute(pexec.Execution{
