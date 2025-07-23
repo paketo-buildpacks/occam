@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v28.3.2+incompatible
 	github.com/google/go-containerregistry v0.20.6
 	github.com/oklog/ulid/v2 v2.1.1
-	github.com/onsi/gomega v1.37.0
+	github.com/onsi/gomega v1.38.0
 	github.com/paketo-buildpacks/freezer v0.2.0
 	github.com/paketo-buildpacks/packit/v2 v2.22.0
 	github.com/sclevine/spec v1.4.0
@@ -75,6 +75,5 @@ require (
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
