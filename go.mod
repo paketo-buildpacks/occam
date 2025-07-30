@@ -7,7 +7,7 @@ require (
 	github.com/google/go-containerregistry v0.20.6
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.38.0
-	github.com/paketo-buildpacks/freezer v0.2.0
+	github.com/paketo-buildpacks/freezer v0.2.1
 	github.com/paketo-buildpacks/packit/v2 v2.23.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.38.0

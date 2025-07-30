@@ -115,8 +115,8 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=
 github.com/opencontainers/image-spec v1.1.1/go.mod h1:qpqAh3Dmcf36wStyyWU+kCeDgrGnAve2nCC8+7h8Q0M=
-github.com/paketo-buildpacks/freezer v0.2.0 h1:Fu04RuQYKbF2F/ZXRrMb4o1d+K7YLlW0MrOqlMk5IJ4=
-github.com/paketo-buildpacks/freezer v0.2.0/go.mod h1:pn76olIkLO0PjdC1xBjmzeh9+tawmnow5zWTjWTEml4=
+github.com/paketo-buildpacks/freezer v0.2.1 h1:6XpdAgK6DMC8lme/ndKmnsmmssPTWfuomM7NmsjDedo=
+github.com/paketo-buildpacks/freezer v0.2.1/go.mod h1:rsuH8ILZKMokRkCPxpZtngICCDKPsEuWGTBqDpvwiws=
 github.com/paketo-buildpacks/packit/v2 v2.23.0 h1:9v01l0wymOMCvSIfflPa5vy+NmeFU2egU8qRL4PtYYs=
 github.com/paketo-buildpacks/packit/v2 v2.23.0/go.mod h1:Sd7qAaRFYnGk75FFxY6rGJqhKmTEd+5q2gTUHGFYW+w=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
