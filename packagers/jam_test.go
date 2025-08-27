@@ -112,7 +112,7 @@ func testJam(t *testing.T, context spec.G, it spec.S) {
 					"extension", "package",
 					"some-output",
 					"--format", "file",
-					"--target", "linux/amd64",
+					"--target", fmt.Sprintf("linux/%s", runtime.GOARCH),
 				}))
 			})
 		})
