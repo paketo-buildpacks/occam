@@ -281,5 +281,5 @@ func (e RegistryBuildpackImageExtractor) GetBuildpackRootAndVersion(path string)
 		return "", "", fmt.Errorf("failed to encode buildpack config: %w", err)
 	}
 
-	return buildpackTomlPath, config.Buildpack.Version, nil
+	return buildpackRootDir, config.Buildpack.Version, nil
 }
