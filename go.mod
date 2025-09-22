@@ -8,7 +8,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.38.2
 	github.com/paketo-buildpacks/freezer v0.2.2
-	github.com/paketo-buildpacks/packit/v2 v2.24.0
+	github.com/paketo-buildpacks/packit/v2 v2.25.0
 	github.com/sclevine/spec v1.4.0
 	github.com/testcontainers/testcontainers-go v0.39.0
 )
@@ -60,7 +60,7 @@ require (
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
-	github.com/ulikunitz/xz v0.5.14 // indirect
+	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/vbatts/tar-split v0.12.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
