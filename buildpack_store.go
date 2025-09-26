@@ -222,17 +222,20 @@ func (e RegistryBuildpackImageExtractor) Extract(ref string, destination string)
 		return "", "", fmt.Errorf("failed to decompress layer: %w", err)
 	}
 
-	buildpackRoot, version, err := e.GetBuildpackRootAndVersion(destination)
+	rootPath, version, err := e.GetRootPathAndVersionAndUpdateConfig(destination)
 	if err != nil {
 		return "", "", err
 	}
 
-	return buildpackRoot, version, nil
+	return rootPath, version, nil
 }
 
-// Get buildpack root and version, and update buildpack toml so packager will work
-func (e RegistryBuildpackImageExtractor) GetBuildpackRootAndVersion(path string) (string, string, error) {
-	var buildpackTomlPath, buildpackRootDir string
+// Get buildpack or extension root path and version, and update buildpack.toml or extension.toml so packager will work
+func (e RegistryBuildpackImageExtractor) GetRootPathAndVersionAndUpdateConfig(path string) (string, string, error) {
+	var tomlPath, rootDir, version string
+
+	// asume buildpack by default
+	isExtension := false
 
 	files := []string{}
 	err := filepath.WalkDir(path, func(walkPath string, d fs.DirEntry, err error) error {
@@ -244,8 +247,12 @@ func (e RegistryBuildpackImageExtractor) GetBuildpackRootAndVersion(path string)
 			files = append(files, walkPath)
 
 			if filepath.Base(walkPath) == "buildpack.toml" {
-				buildpackTomlPath = walkPath
-				buildpackRootDir = filepath.Dir(walkPath)
+				tomlPath = walkPath
+				rootDir = filepath.Dir(walkPath)
+			} else if filepath.Base(walkPath) == "extension.toml" {
+				tomlPath = walkPath
+				rootDir = filepath.Dir(walkPath)
+				isExtension = true
 			}
 		}
 		return nil
@@ -254,19 +261,37 @@ func (e RegistryBuildpackImageExtractor) GetBuildpackRootAndVersion(path string)
 		return "", "", fmt.Errorf("failed to access extracted buildpack path: %w", err)
 	}
 
-	parser := cargo.NewBuildpackParser()
-	config, err := parser.Parse(buildpackTomlPath)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to parse buildpack config: %w", err)
+	var buildpackConfig cargo.Config
+	var extensionConfig cargo.ExtensionConfig
+
+	if isExtension {
+		extensionParser := cargo.NewExtensionParser()
+		extensionConfig, err = extensionParser.Parse(tomlPath)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to parse extension config: %w", err)
+		}
+
+		extensionConfig.Metadata.PrePackage = ""
+		extensionConfig.Metadata.IncludeFiles = []string{}
+		for _, filePath := range files {
+			extensionConfig.Metadata.IncludeFiles = append(extensionConfig.Metadata.IncludeFiles, strings.Replace(filePath, rootDir+"/", "", 1))
+		}
+		version = extensionConfig.Extension.Version
+	} else {
+		buildpackParser := cargo.NewBuildpackParser()
+		buildpackConfig, err = buildpackParser.Parse(tomlPath)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to parse buildpack config: %w", err)
+		}
+		buildpackConfig.Metadata.PrePackage = ""
+		buildpackConfig.Metadata.IncludeFiles = []string{}
+		for _, filePath := range files {
+			buildpackConfig.Metadata.IncludeFiles = append(buildpackConfig.Metadata.IncludeFiles, strings.Replace(filePath, rootDir+"/", "", 1))
+		}
+		version = buildpackConfig.Buildpack.Version
 	}
 
-	config.Metadata.PrePackage = ""
-	config.Metadata.IncludeFiles = []string{}
-	for _, filePath := range files {
-		config.Metadata.IncludeFiles = append(config.Metadata.IncludeFiles, strings.Replace(filePath, buildpackRootDir+"/", "", 1))
-	}
-
-	file, err := os.OpenFile(buildpackTomlPath, os.O_RDWR|os.O_TRUNC, 0600)
+	file, err := os.OpenFile(tomlPath, os.O_RDWR|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to open buildpack config: %w", err)
 	}
@@ -276,10 +301,14 @@ func (e RegistryBuildpackImageExtractor) GetBuildpackRootAndVersion(path string)
 		}
 	}()
 
-	err = cargo.EncodeConfig(file, config)
+	if isExtension {
+		err = cargo.EncodeExtensionConfig(file, extensionConfig)
+	} else {
+		err = cargo.EncodeConfig(file, buildpackConfig)
+	}
 	if err != nil {
 		return "", "", fmt.Errorf("failed to encode buildpack config: %w", err)
 	}
 
-	return buildpackRootDir, config.Buildpack.Version, nil
+	return rootDir, version, nil
 }
