@@ -2,10 +2,12 @@ package occam
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/paketo-buildpacks/packit/v2/pexec"
 )
@@ -79,6 +81,7 @@ type PackBuild struct {
 	pullPolicy          string
 	sbomOutputDir       string
 	volumes             []string
+	caches              []string
 	gid                 string
 	runImage            string
 	additionalBuildArgs []string
@@ -158,6 +161,11 @@ func (pb PackBuild) WithVolumes(volumes ...string) PackBuild {
 	return pb
 }
 
+func (pb PackBuild) WithCaches(caches ...string) PackBuild {
+	pb.caches = append(pb.caches, caches...)
+	return pb
+}
+
 func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 	args := []string{"build", name}
 
@@ -230,6 +238,34 @@ func (pb PackBuild) Execute(name, path string) (Image, fmt.Stringer, error) {
 
 	if pb.runImage != "" {
 		args = append(args, "--run-image", pb.runImage)
+	}
+
+	cacheArgExists := false
+	for _, arg := range pb.additionalBuildArgs {
+		if arg == "--cache" {
+			cacheArgExists = true
+			break
+		}
+	}
+
+	if len(pb.caches) == 0 && !cacheArgExists {
+
+		refName := []byte(fmt.Sprintf("%s:latest", name))
+		sum := sha256.Sum256(refName)
+
+		parts := strings.SplitN(name, "/", 2)
+		splitName := name
+		if len(parts) == 2 {
+			splitName = parts[1]
+		}
+
+		for _, t := range []string{"build", "launch"} {
+			pb.caches = append(pb.caches, fmt.Sprintf("type=%s;format=volume;name=pack-cache-%s_latest-%x.%s", t, splitName, sum[:6], t))
+		}
+	}
+
+	for _, cache := range pb.caches {
+		args = append(args, "--cache", cache)
 	}
 
 	packEnv := os.Environ()
