@@ -55,6 +55,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				"build", "myapp",
 				"--verbose",
 				"--path", "/some/app/path",
+				"--cache",
+				"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+				"--cache",
+				"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 			}))
 			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
@@ -77,6 +81,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				"build", "myapp",
 				"--no-color",
 				"--path", "/some/app/path",
+				"--cache",
+				"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+				"--cache",
+				"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 			}))
 			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
@@ -93,6 +101,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 
 			Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 				"build", "myapp", "--path", "/some/app/path",
+				"--cache",
+				"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+				"--cache",
+				"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 			}))
 			Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 		})
@@ -121,6 +133,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--buildpack", "some-buildpack",
 					"--buildpack", "other-buildpack",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -140,6 +156,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--network", "some-network",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -159,6 +179,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--builder", "some-builder",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -178,6 +202,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--clear-cache",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -203,6 +231,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--env", "OTHER_KEY=other-value",
 					"--env", "SOME_KEY=some-value",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -222,6 +254,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--no-pull",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -241,6 +277,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--pull-policy", "if-not-present",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -260,6 +300,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--sbom-output-dir", "some-dir",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -279,6 +323,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--trust-builder",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -304,6 +352,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"--path", "/some/app/path",
 					"--volume", "/tmp/host-source:/tmp/dir-on-image:rw",
 					"--volume", "/tmp/second-host-source:/tmp/second-dir-on-image:ro",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -325,6 +377,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--run-image", "custom",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -348,6 +404,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 					"build", "myapp",
 					"--path", "/some/app/path",
 					"--gid", "1001",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
 			})
@@ -368,6 +428,10 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 					"build", "myapp",
 					"--path", "/some/app/path",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
 					"--not-supported-yet", "true",
 				}))
 				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
