@@ -130,6 +130,16 @@ func (pb PackBuild) WithEnv(env map[string]string) PackBuild {
 	return pb
 }
 
+func (pb PackBuild) WithAdditionalEnv(env map[string]string) PackBuild {
+	if pb.env == nil {
+		pb.env = make(map[string]string)
+	}
+	for key, value := range env {
+		pb.env[key] = value
+	}
+	return pb
+}
+
 func (pb PackBuild) WithGID(gid string) PackBuild {
 	pb.gid = gid
 	return pb
