@@ -240,6 +240,119 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
+		context("when given additional env", func() {
+			it("merges additional environment variables with existing ones", func() {
+				image, logs, err := pack.Build.
+					WithEnv(map[string]string{
+						"EXISTING_KEY": "existing-value",
+						"SHARED_KEY":   "original-value",
+					}).
+					WithAdditionalEnv(map[string]string{
+						"ADDITIONAL_KEY": "additional-value",
+						"SHARED_KEY":     "overridden-value",
+					}).
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--env", "ADDITIONAL_KEY=additional-value",
+					"--env", "EXISTING_KEY=existing-value",
+					"--env", "SHARED_KEY=overridden-value",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+
+			it("adds environment variables when no existing env is set", func() {
+				image, logs, err := pack.Build.
+					WithAdditionalEnv(map[string]string{
+						"NEW_KEY": "new-value",
+						"ANOTHER_KEY": "another-value",
+					}).
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--env", "ANOTHER_KEY=another-value",
+					"--env", "NEW_KEY=new-value",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+
+			it("handles empty additional env map", func() {
+				image, logs, err := pack.Build.
+					WithEnv(map[string]string{
+						"EXISTING_KEY": "existing-value",
+					}).
+					WithAdditionalEnv(map[string]string{}).
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--env", "EXISTING_KEY=existing-value",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+
+			it("handles nil additional env map", func() {
+				image, logs, err := pack.Build.
+					WithEnv(map[string]string{
+						"EXISTING_KEY": "existing-value",
+					}).
+					WithAdditionalEnv(nil).
+					Execute("myapp", "/some/app/path")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(image).To(Equal(occam.Image{
+					ID: "some-image-id",
+				}))
+				Expect(logs.String()).To(Equal("some stdout output\nsome stderr output\n"))
+
+				Expect(executable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+					"build", "myapp",
+					"--path", "/some/app/path",
+					"--env", "EXISTING_KEY=existing-value",
+					"--cache",
+					"type=build;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.build",
+					"--cache",
+					"type=launch;format=volume;name=pack-cache-myapp_latest-c48abba4d0f8.launch",
+				}))
+				Expect(dockerImageInspectClient.ExecuteCall.Receives.Ref).To(Equal("myapp"))
+			})
+		})
+
 		context("when given optional no-pull", func() {
 			it("returns an image with the given name and the build logs", func() {
 				image, logs, err := pack.Build.WithNoPull().Execute("myapp", "/some/app/path")
