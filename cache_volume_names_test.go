@@ -20,6 +20,7 @@ func testCacheVolumeNames(t *testing.T, context spec.G, it spec.S) {
 			"pack-cache-some-app_latest-16fe664c76f0.launch",
 			"pack-cache-16fe664c76f0.cache",
 			"pack-cache-some-app_latest-16fe664c76f0.cache",
+			"pack-cache-some-app_latest-c38cb104abe0.kaniko",
 		}))
 	})
 
@@ -32,6 +33,7 @@ func testCacheVolumeNames(t *testing.T, context spec.G, it spec.S) {
 				"pack-cache-some-app_latest-e69d3a4f1e12.launch",
 				"pack-cache-e69d3a4f1e12.cache",
 				"pack-cache-some-app_latest-e69d3a4f1e12.cache",
+				"pack-cache-some-app_latest-03c3cd5a5c5d.kaniko",
 			}))
 		})
 	})
