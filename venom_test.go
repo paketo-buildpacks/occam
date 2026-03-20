@@ -23,8 +23,8 @@ func testVenom(t *testing.T, context spec.G, it spec.S) {
 	it.Before(func() {
 		executable = &fakes.Executable{}
 		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-			fmt.Fprintln(execution.Stdout, "some stdout output")
-			fmt.Fprintln(execution.Stderr, "some stderr output")
+			_, _ = fmt.Fprintln(execution.Stdout, "some stdout output")
+			_, _ = fmt.Fprintln(execution.Stderr, "some stderr output")
 			return nil
 		}
 
