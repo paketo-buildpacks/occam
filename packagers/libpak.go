@@ -46,7 +46,11 @@ func (l Libpak) Execute(buildpackDir, output, version string, cached bool) error
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(libpakOutput)
+	defer func() {
+		if err := os.RemoveAll(libpakOutput); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to clean up libpak output: %s\n", err)
+		}
+	}()
 
 	args := []string{
 		"--destination", libpakOutput,

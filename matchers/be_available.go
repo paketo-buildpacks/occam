@@ -3,6 +3,7 @@ package matchers
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/onsi/gomega/types"
 	"github.com/paketo-buildpacks/occam"
@@ -30,7 +31,9 @@ func (*BeAvailableMatcher) Match(actual interface{}) (bool, error) {
 	for port := range container.Ports {
 		response, err := http.Get(fmt.Sprintf("http://%s:%s", container.Host(), container.HostPort(port)))
 		if response != nil {
-			response.Body.Close()
+			if err := response.Body.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close response body: %s\n", err)
+			}
 		}
 
 		if err == nil {

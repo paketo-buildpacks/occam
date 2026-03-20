@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -125,7 +126,11 @@ func (sm *ServeMatcher) Match(actual interface{}) (success bool, err error) {
 			return response.Header.Get(header.key) == header.value, nil
 		}
 
-		defer response.Body.Close()
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close response body: %s\n", err)
+			}
+		}()
 		content, err := io.ReadAll(response.Body)
 		if err != nil {
 			return false, err

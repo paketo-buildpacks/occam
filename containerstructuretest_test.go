@@ -22,8 +22,12 @@ func testContainerStructureTest(t *testing.T, context spec.G, it spec.S) {
 	it.Before(func() {
 		executable = &fakes.Executable{}
 		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-			fmt.Fprintln(execution.Stdout, "some stdout output")
-			fmt.Fprintln(execution.Stderr, "some stderr output")
+			if _, err := fmt.Fprintln(execution.Stdout, "some stdout output"); err != nil {
+				return fmt.Errorf("failed to write stdout: %w", err)
+			}
+			if _, err := fmt.Fprintln(execution.Stderr, "some stderr output"); err != nil {
+				return fmt.Errorf("failed to write stderr: %w", err)
+			}
 			return nil
 		}
 

@@ -25,8 +25,8 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 	it.Before(func() {
 		executable = &fakes.Executable{}
 		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-			fmt.Fprintln(execution.Stdout, "some stdout output")
-			fmt.Fprintln(execution.Stderr, "some stderr output")
+			_, _ = fmt.Fprintln(execution.Stdout, "some stdout output")
+			_, _ = fmt.Fprintln(execution.Stderr, "some stderr output")
 			return nil
 		}
 
@@ -555,8 +555,8 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			context("when the executable fails", func() {
 				it.Before(func() {
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						fmt.Fprintln(execution.Stdout, "some stdout output")
-						fmt.Fprintln(execution.Stderr, "some stderr output")
+						_, _ = fmt.Fprintln(execution.Stdout, "some stdout output")
+						_, _ = fmt.Fprintln(execution.Stderr, "some stderr output")
 						return errors.New("failed to execute")
 					}
 				})
@@ -587,7 +587,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			context("when given no builder image name", func() {
 				it.Before(func() {
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						fmt.Fprintln(execution.Stdout, `{
+						_, _ = fmt.Fprintln(execution.Stdout, `{
 							"builder_name": "default-builder",
 							"trusted": true,
 							"default": true,
@@ -879,7 +879,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 			context("when given a specific builder name", func() {
 				it.Before(func() {
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						fmt.Fprintln(execution.Stdout, `{
+						_, _ = fmt.Fprintln(execution.Stdout, `{
 							"local_info": {
 								"stack": {
 									"id": "other-stack-id"
@@ -922,7 +922,9 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				context("when the pack executable fails", func() {
 					it.Before(func() {
 						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-							fmt.Fprint(execution.Stdout, "some failure message")
+							if _, err := fmt.Fprint(execution.Stdout, "some failure message"); err != nil {
+								return fmt.Errorf("failed to write message: %w", err)
+							}
 							return errors.New("some error")
 						}
 					})
@@ -936,7 +938,7 @@ func testPack(t *testing.T, context spec.G, it spec.S) {
 				context("when the pack returns unparseable JSON", func() {
 					it.Before(func() {
 						executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-							fmt.Fprintln(execution.Stdout, "%%%")
+							_, _ = fmt.Fprintln(execution.Stdout, "%%%")
 							return nil
 						}
 					})
