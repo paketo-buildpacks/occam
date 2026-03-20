@@ -120,7 +120,11 @@ func (g BuildpackStoreGet) Execute(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to open cacheManager: %s", err)
 	}
-	defer g.cacheManager.Close()
+	defer func() {
+		if err := g.cacheManager.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close cache manager: %s\n", err)
+		}
+	}()
 
 	info, err := os.Stat(url)
 

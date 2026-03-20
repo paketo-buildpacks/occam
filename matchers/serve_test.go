@@ -48,7 +48,9 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			switch req.URL.Path {
 			case "/":
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprint(w, "some string")
+			if _, err := fmt.Fprint(w, "some string"); err != nil {
+				t.Logf("warning: failed to write response: %v", err)
+			}
 			case "/redirect":
 				w.Header()["Location"] = []string{"/"}
 				w.WriteHeader(http.StatusMovedPermanently)
@@ -57,7 +59,9 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 			case "/teapot":
 				w.WriteHeader(http.StatusTeapot)
 			default:
-				fmt.Fprintln(w, "unknown path")
+			if _, err := fmt.Fprintln(w, "unknown path"); err != nil {
+				t.Logf("warning: failed to write response: %v", err)
+			}
 				t.Fatalf("unknown path: %s", req.URL.Path)
 			}
 		}))
@@ -235,7 +239,9 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 				it.Before(func() {
 					executable := &fakes.Executable{}
 					executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-						fmt.Fprintln(execution.Stdout, "some logs")
+					if _, err := fmt.Fprintln(execution.Stdout, "some logs"); err != nil {
+						return fmt.Errorf("failed to write logs: %w", err)
+					}
 						return nil
 					}
 
@@ -309,7 +315,9 @@ func testServe(t *testing.T, context spec.G, it spec.S) {
 		it.Before(func() {
 			executable := &fakes.Executable{}
 			executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-				fmt.Fprintln(execution.Stdout, "some logs")
+				if _, err := fmt.Fprintln(execution.Stdout, "some logs"); err != nil {
+					return fmt.Errorf("failed to write logs: %w", err)
+				}
 				return nil
 			}
 

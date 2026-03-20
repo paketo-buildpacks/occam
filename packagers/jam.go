@@ -53,7 +53,11 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(jamOutput)
+	defer func() {
+		if err := os.RemoveAll(jamOutput); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to clean up jam output: %s\n", err)
+		}
+	}()
 
 	buildpackTarballPath := filepath.Join(jamOutput, fmt.Sprintf("%s.tgz", version))
 
@@ -121,7 +125,9 @@ func (j Jam) Execute(buildpackDir, output, version string, offline bool) error {
 		Stderr: os.Stderr,
 	})
 
-	os.RemoveAll(tmpDir)
+	if err := os.RemoveAll(tmpDir); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to clean up temp directory: %s\n", err)
+	}
 
 	return err
 }

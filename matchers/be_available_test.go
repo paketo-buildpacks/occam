@@ -95,7 +95,9 @@ func testBeAvailable(t *testing.T, context spec.G, it spec.S) {
 		it.Before(func() {
 			executable := &fakes.Executable{}
 			executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-				fmt.Fprintln(execution.Stdout, "some logs")
+				if _, err := fmt.Fprintln(execution.Stdout, "some logs"); err != nil {
+					return fmt.Errorf("failed to write logs: %w", err)
+				}
 				return nil
 			}
 
@@ -128,7 +130,9 @@ some logs
 		it.Before(func() {
 			executable := &fakes.Executable{}
 			executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-				fmt.Fprintln(execution.Stdout, "some logs")
+				if _, err := fmt.Fprintln(execution.Stdout, "some logs"); err != nil {
+					return fmt.Errorf("failed to write logs: %w", err)
+				}
 				return nil
 			}
 
