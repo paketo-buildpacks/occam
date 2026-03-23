@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 	name "github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	daemon "github.com/google/go-containerregistry/pkg/v1/daemon"
@@ -178,7 +178,7 @@ func (r DockerImageOCI) WithClient(client DockerDaemonClient) DockerImageOCI {
 
 func (r DockerImageOCI) Execute(ref string) (v1.Image, error) {
 	if r.client == nil {
-		client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		client, err := client.New(client.FromEnv)
 		if err != nil {
 			return nil, err
 		}

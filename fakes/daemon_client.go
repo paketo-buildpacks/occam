@@ -5,11 +5,23 @@ import (
 	"io"
 	"sync"
 
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 )
 
 type DockerDaemonClient struct {
+	PingCall struct {
+		mutex     sync.Mutex
+		CallCount int
+		Receives  struct {
+			Context     context.Context
+			PingOptions client.PingOptions
+		}
+		Returns struct {
+			PingResult client.PingResult
+			Error      error
+		}
+		Stub func(context.Context, client.PingOptions) (client.PingResult, error)
+	}
 	ImageHistoryCall struct {
 		mutex     sync.Mutex
 		CallCount int
@@ -19,24 +31,24 @@ type DockerDaemonClient struct {
 			ImageHistoryOptionSlice []client.ImageHistoryOption
 		}
 		Returns struct {
-			HistoryResponseItemSlice []image.HistoryResponseItem
-			Error                    error
+			ImageHistoryResult client.ImageHistoryResult
+			Error              error
 		}
-		Stub func(context.Context, string, ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
+		Stub func(context.Context, string, ...client.ImageHistoryOption) (client.ImageHistoryResult, error)
 	}
-	ImageInspectWithRawCall struct {
+	ImageInspectCall struct {
 		mutex     sync.Mutex
 		CallCount int
 		Receives  struct {
-			Context context.Context
-			String  string
+			Context                context.Context
+			String                 string
+			ImageInspectOptionSlice []client.ImageInspectOption
 		}
 		Returns struct {
-			InspectResponse image.InspectResponse
-			ByteSlice       []byte
-			Error           error
+			ImageInspectResult client.ImageInspectResult
+			Error              error
 		}
-		Stub func(context.Context, string) (image.InspectResponse, []byte, error)
+		Stub func(context.Context, string, ...client.ImageInspectOption) (client.ImageInspectResult, error)
 	}
 	ImageLoadCall struct {
 		mutex     sync.Mutex
@@ -47,10 +59,10 @@ type DockerDaemonClient struct {
 			ImageLoadOptionSlice []client.ImageLoadOption
 		}
 		Returns struct {
-			LoadResponse image.LoadResponse
-			Error        error
+			ImageLoadResult client.ImageLoadResult
+			Error           error
 		}
-		Stub func(context.Context, io.Reader, ...client.ImageLoadOption) (image.LoadResponse, error)
+		Stub func(context.Context, io.Reader, ...client.ImageLoadOption) (client.ImageLoadResult, error)
 	}
 	ImageSaveCall struct {
 		mutex     sync.Mutex
@@ -61,35 +73,39 @@ type DockerDaemonClient struct {
 			ImageSaveOptionSlice []client.ImageSaveOption
 		}
 		Returns struct {
-			ReadCloser io.ReadCloser
-			Error      error
+			ImageSaveResult client.ImageSaveResult
+			Error           error
 		}
-		Stub func(context.Context, []string, ...client.ImageSaveOption) (io.ReadCloser, error)
+		Stub func(context.Context, []string, ...client.ImageSaveOption) (client.ImageSaveResult, error)
 	}
 	ImageTagCall struct {
 		mutex     sync.Mutex
 		CallCount int
 		Receives  struct {
-			Context  context.Context
-			String_1 string
-			String_2 string
+			Context         context.Context
+			ImageTagOptions client.ImageTagOptions
 		}
 		Returns struct {
-			Error error
+			ImageTagResult client.ImageTagResult
+			Error          error
 		}
-		Stub func(context.Context, string, string) error
-	}
-	NegotiateAPIVersionCall struct {
-		mutex     sync.Mutex
-		CallCount int
-		Receives  struct {
-			Ctx context.Context
-		}
-		Stub func(context.Context)
+		Stub func(context.Context, client.ImageTagOptions) (client.ImageTagResult, error)
 	}
 }
 
-func (f *DockerDaemonClient) ImageHistory(param1 context.Context, param2 string, param3 ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
+func (f *DockerDaemonClient) Ping(param1 context.Context, param2 client.PingOptions) (client.PingResult, error) {
+	f.PingCall.mutex.Lock()
+	defer f.PingCall.mutex.Unlock()
+	f.PingCall.CallCount++
+	f.PingCall.Receives.Context = param1
+	f.PingCall.Receives.PingOptions = param2
+	if f.PingCall.Stub != nil {
+		return f.PingCall.Stub(param1, param2)
+	}
+	return f.PingCall.Returns.PingResult, f.PingCall.Returns.Error
+}
+
+func (f *DockerDaemonClient) ImageHistory(param1 context.Context, param2 string, param3 ...client.ImageHistoryOption) (client.ImageHistoryResult, error) {
 	f.ImageHistoryCall.mutex.Lock()
 	defer f.ImageHistoryCall.mutex.Unlock()
 	f.ImageHistoryCall.CallCount++
@@ -99,20 +115,23 @@ func (f *DockerDaemonClient) ImageHistory(param1 context.Context, param2 string,
 	if f.ImageHistoryCall.Stub != nil {
 		return f.ImageHistoryCall.Stub(param1, param2, param3...)
 	}
-	return f.ImageHistoryCall.Returns.HistoryResponseItemSlice, f.ImageHistoryCall.Returns.Error
+	return f.ImageHistoryCall.Returns.ImageHistoryResult, f.ImageHistoryCall.Returns.Error
 }
-func (f *DockerDaemonClient) ImageInspectWithRaw(param1 context.Context, param2 string) (image.InspectResponse, []byte, error) {
-	f.ImageInspectWithRawCall.mutex.Lock()
-	defer f.ImageInspectWithRawCall.mutex.Unlock()
-	f.ImageInspectWithRawCall.CallCount++
-	f.ImageInspectWithRawCall.Receives.Context = param1
-	f.ImageInspectWithRawCall.Receives.String = param2
-	if f.ImageInspectWithRawCall.Stub != nil {
-		return f.ImageInspectWithRawCall.Stub(param1, param2)
+
+func (f *DockerDaemonClient) ImageInspect(param1 context.Context, param2 string, param3 ...client.ImageInspectOption) (client.ImageInspectResult, error) {
+	f.ImageInspectCall.mutex.Lock()
+	defer f.ImageInspectCall.mutex.Unlock()
+	f.ImageInspectCall.CallCount++
+	f.ImageInspectCall.Receives.Context = param1
+	f.ImageInspectCall.Receives.String = param2
+	f.ImageInspectCall.Receives.ImageInspectOptionSlice = param3
+	if f.ImageInspectCall.Stub != nil {
+		return f.ImageInspectCall.Stub(param1, param2, param3...)
 	}
-	return f.ImageInspectWithRawCall.Returns.InspectResponse, f.ImageInspectWithRawCall.Returns.ByteSlice, f.ImageInspectWithRawCall.Returns.Error
+	return f.ImageInspectCall.Returns.ImageInspectResult, f.ImageInspectCall.Returns.Error
 }
-func (f *DockerDaemonClient) ImageLoad(param1 context.Context, param2 io.Reader, param3 ...client.ImageLoadOption) (image.LoadResponse, error) {
+
+func (f *DockerDaemonClient) ImageLoad(param1 context.Context, param2 io.Reader, param3 ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 	f.ImageLoadCall.mutex.Lock()
 	defer f.ImageLoadCall.mutex.Unlock()
 	f.ImageLoadCall.CallCount++
@@ -122,9 +141,10 @@ func (f *DockerDaemonClient) ImageLoad(param1 context.Context, param2 io.Reader,
 	if f.ImageLoadCall.Stub != nil {
 		return f.ImageLoadCall.Stub(param1, param2, param3...)
 	}
-	return f.ImageLoadCall.Returns.LoadResponse, f.ImageLoadCall.Returns.Error
+	return f.ImageLoadCall.Returns.ImageLoadResult, f.ImageLoadCall.Returns.Error
 }
-func (f *DockerDaemonClient) ImageSave(param1 context.Context, param2 []string, param3 ...client.ImageSaveOption) (io.ReadCloser, error) {
+
+func (f *DockerDaemonClient) ImageSave(param1 context.Context, param2 []string, param3 ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 	f.ImageSaveCall.mutex.Lock()
 	defer f.ImageSaveCall.mutex.Unlock()
 	f.ImageSaveCall.CallCount++
@@ -134,26 +154,17 @@ func (f *DockerDaemonClient) ImageSave(param1 context.Context, param2 []string, 
 	if f.ImageSaveCall.Stub != nil {
 		return f.ImageSaveCall.Stub(param1, param2, param3...)
 	}
-	return f.ImageSaveCall.Returns.ReadCloser, f.ImageSaveCall.Returns.Error
+	return f.ImageSaveCall.Returns.ImageSaveResult, f.ImageSaveCall.Returns.Error
 }
-func (f *DockerDaemonClient) ImageTag(param1 context.Context, param2 string, param3 string) error {
+
+func (f *DockerDaemonClient) ImageTag(param1 context.Context, param2 client.ImageTagOptions) (client.ImageTagResult, error) {
 	f.ImageTagCall.mutex.Lock()
 	defer f.ImageTagCall.mutex.Unlock()
 	f.ImageTagCall.CallCount++
 	f.ImageTagCall.Receives.Context = param1
-	f.ImageTagCall.Receives.String_1 = param2
-	f.ImageTagCall.Receives.String_2 = param3
+	f.ImageTagCall.Receives.ImageTagOptions = param2
 	if f.ImageTagCall.Stub != nil {
-		return f.ImageTagCall.Stub(param1, param2, param3)
+		return f.ImageTagCall.Stub(param1, param2)
 	}
-	return f.ImageTagCall.Returns.Error
-}
-func (f *DockerDaemonClient) NegotiateAPIVersion(param1 context.Context) {
-	f.NegotiateAPIVersionCall.mutex.Lock()
-	defer f.NegotiateAPIVersionCall.mutex.Unlock()
-	f.NegotiateAPIVersionCall.CallCount++
-	f.NegotiateAPIVersionCall.Receives.Ctx = param1
-	if f.NegotiateAPIVersionCall.Stub != nil {
-		f.NegotiateAPIVersionCall.Stub(param1)
-	}
+	return f.ImageTagCall.Returns.ImageTagResult, f.ImageTagCall.Returns.Error
 }
