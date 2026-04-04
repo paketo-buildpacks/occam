@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/google/go-containerregistry v0.21.3
-	github.com/moby/moby/api v1.54.0
+	github.com/moby/moby/api v1.54.1
 	github.com/moby/moby/client v0.3.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.39.1
