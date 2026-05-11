@@ -1,6 +1,6 @@
 module github.com/paketo-buildpacks/occam
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/google/go-containerregistry v0.21.5
