@@ -5,6 +5,7 @@ on:
     branches:
     - main
     - v*
+    - '!v*-*'
   repository_dispatch:
     types: [ version-bump ]
   workflow_dispatch:
@@ -18,29 +19,44 @@ concurrency: release
 jobs:
   unit:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-    - name: Setup Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 'stable'
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Setup Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      with:
+        go-version-file: go.mod
+
+    - name: Read options
+      id: options
+      run: |
+        setup_qemu=false
+        if [[ -f scripts/options.json ]]; then
+          setup_qemu="$(jq -r '.setup_qemu // false' scripts/options.json)"
+        fi
+        echo "setup_qemu=${setup_qemu}" >> "${GITHUB_OUTPUT}"
+
+    - name: Set up QEMU
+      if: steps.options.outputs.setup_qemu == 'true'
+      uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
     - name: Run Unit Tests
-      run: go test -v -count=1 ./...
+      run: ./scripts/unit.sh
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: unit
     steps:
-    - name: Setup Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 'stable'
     - name: Checkout
-      uses: actions/checkout@v3
-    - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-tags: true
+    - name: Setup Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      with:
+        go-version-file: go.mod
     - name: Reset Draft Release
       id: reset
       uses: paketo-buildpacks/github-config/actions/release/reset-draft@main
@@ -63,6 +79,44 @@ jobs:
           tag="${{ steps.semver.outputs.tag }}"
         fi
         echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+    - name: Generate Release Notes
+      env:
+        GH_TOKEN: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
+      run: |
+        gh api \
+          --method POST \
+          -H "Accept: application/vnd.github+json" \
+          "/repos/${{ github.repository }}/releases/generate-notes" \
+          -f tag_name="v${{ steps.tag.outputs.tag }}" \
+          -f target_commitish="${{ github.sha }}" \
+          --jq .body > release_notes.md
+    - name: Check for package script
+      id: package
+      run: |
+        exists=false
+        if [[ -f scripts/package.sh ]]; then
+          exists=true
+        fi
+        echo "exists=${exists}" >> "${GITHUB_OUTPUT}"
+    - name: Package
+      if: steps.package.outputs.exists == 'true'
+      env:
+        TAG: ${{ steps.tag.outputs.tag }}
+      run: ./scripts/package.sh --version "${TAG}"
+    - name: Create Release Assets
+      id: assets
+      if: steps.package.outputs.exists == 'true'
+      run: |
+        assets="$(find build -type f -printf '%P\n' | jq -R -s -c '
+          split("\n")
+          | map(select(length > 0))
+          | map({
+              path: ("build/" + .),
+              name: .,
+              content_type: "application/octet-stream"
+            })
+        ')"
+        printf 'assets=%s\n' "${assets}" >> "${GITHUB_OUTPUT}"
     - name: Create Release
       uses: paketo-buildpacks/github-config/actions/release/create@main
       with:
@@ -71,13 +125,17 @@ jobs:
         tag_name: v${{ steps.tag.outputs.tag }}
         target_commitish: ${{ github.sha }}
         name: v${{ steps.tag.outputs.tag }}
+        body_filepath: release_notes.md
         draft: true
+        assets: ${{ steps.assets.outputs.assets || '[]' }}
 
   failure:
     name: Alert on Failure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ unit, release ]
     if: ${{ always() && needs.unit.result == 'failure' || needs.release.result == 'failure' }}
+    permissions:
+      issues: write
     steps:
     - name: File Failure Alert Issue
       uses: paketo-buildpacks/github-config/actions/issue/file@main
